@@ -17,7 +17,7 @@ class RouteEntry:
     flag -- Set to `True` to indicate that the entry has changed.
     """
 
-    flag: bool = False
+    flag = False
 
     def __init__(self, port: int, metric: int, next_address: int):
         self.port = port
