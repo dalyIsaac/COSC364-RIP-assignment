@@ -11,19 +11,13 @@ class RouteEntry:
     Instance variables:
     port -- The port for this `RouteEntry`.
     next_address - the router-id for the next-address along the path to the destination.
-    flag -- Set to `True` to indicate that the entry has changed.
     sched_update_time -- The time at which a normally scheduled Response will be sent to other routers.
     timeout_time -- The time at which the timeout occurs, and the deletion process for this `RouteEntry` starts.
     garbage_collection_time --- The time after which this `RouteEntry` should be deleted from `RoutingTable`.
+    flag -- Set to `True` to indicate that the entry has changed.
     """
 
-    port: int
-    metric: int
-    next_address: int
     flag: bool = False
-    sched_update_time: datetime
-    timeout_time: datetime
-    garbage_collection_time: Optional[datetime]
 
     def __init__(self, port: int, metric: int, next_address: int):
         self.port = port

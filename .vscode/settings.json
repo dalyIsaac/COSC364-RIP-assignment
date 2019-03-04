@@ -9,4 +9,8 @@
     ],
     "python.linting.mypyEnabled": true,
     "python.formatting.provider": "black",
+    "python.unitTest.promptToConfigure": false,
+    "python.unitTest.pyTestEnabled": false,
+    "python.unitTest.unittestEnabled": false,
+    "python.unitTest.nosetestsEnabled": false,
 }
