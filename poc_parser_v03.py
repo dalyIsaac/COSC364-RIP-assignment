@@ -70,9 +70,8 @@ def read_config(filename):
                 cost = int(cost)
                 id = int(cost)
                 output_ports.append((port, cost, id))
-        """
         elif option == "timers":
-            if tiners is not None:
+            if timers is not None:
                 print("multiple timers lines")
                 break
 
@@ -81,18 +80,17 @@ def read_config(filename):
             for port in parts:
                 port = int(port.strip())
                 timers.append(port)
-        """
     f.close()
-    return (router_id, input_ports, output_ports)
+    return (router_id, input_ports, output_ports, timers)
     
 if __name__ == "__main__":
     
     try:
-        (router_id, input_ports, output_ports) = read_config("R2.cfg")
+        (router_id, input_ports, output_ports, timers) = read_config("R2.cfg")
         print("router-id", router_id)
         print("input-ports", input_ports)
         print("output-ports", output_ports)
-        #print("tiners", timers)
+        print("timers", timers)
     except:
         print("An error occurred")
 
