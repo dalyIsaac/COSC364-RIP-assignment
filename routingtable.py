@@ -5,8 +5,9 @@ from routeentry import RouteEntry
 class RoutingTable:
     table: Dict[int, RouteEntry]
 
-    def __init__(self):
+    def __init__(self, router_id):
         self.table = {}
+        self.router_id = router_id
 
     def __len__(self):
         """Returns the length of the routing table"""
