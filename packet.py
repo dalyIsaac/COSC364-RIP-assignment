@@ -13,7 +13,15 @@ RIP_VERSION_NUMBER = 2
 
 
 def get_next_packet_entries(table: RoutingTable, router_id: int):
-    """`router_id`: The router the packet is being sent to."""
+    """
+    Gets the entries from the routing table, which can be sent to the given `router_id`. Entries which have
+    a metric of less than infinity, or have a flag, and are not learned from the router to whom the packets
+    are going to be sent to are added to the yielded list of entries.
+    
+    Keyword arguments:
+    table -- The routing table, containing all of the entries.
+    router_id -- The router the packet is being sent to.
+    """
     entries  = []
     for destination_router_id in table:
         route = table[destination_router_id]
@@ -25,17 +33,24 @@ def get_next_packet_entries(table: RoutingTable, router_id: int):
     yield entries
 
 
-def _construct_packet_header(packet: bytearray, router_id) -> None:
-    """Modifies the packet's header."""
+def _construct_packet_header(packet: bytearray, table) -> None:
+    """
+    Modifies the packet's header.
+    
+    Keyword arguments:
+    packet -- The packet who will have its header populated.
+    table -- The table from whom the packet is going to be sent from. 
+    """
     # the following are implicitly converted to bytes
     packet[0] = RIP_PACKET_COMMAND
     packet[1] = RIP_VERSION_NUMBER
-    packet[2:4] = router_id.to_bytes(2, "big")
+    packet[2:4] = table.router_id.to_bytes(2, "big")
 
 
 def _construct_packet(table: RoutingTable, entries, router_id) -> bytearray:
+    """Constructs an individual packet, with up to 25 entries inside, with the given table entries."""
     packet = bytearray(HEADER_LEN + len(entries) * ENTRY_LEN)
-    _construct_packet_header(packet, table.router_id)
+    _construct_packet_header(packet, table)
     current_index = 4
 
     for (destination_router_id, entry) in entries:
