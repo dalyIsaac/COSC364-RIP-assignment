@@ -17,11 +17,12 @@ class RouteEntry:
     flag -- Set to `True` to indicate that the entry has changed.
     learned_from -- The router-id of the router from whom this route was learned from. -1 if the router wasn't learned 
     from anyone (i.e. learned from the config file on startup).
+    output_socket -- The output socket for this router to communicate with the router specified in this `RouteEntry`.
     """
 
     flag = False
 
-    def __init__(self, port: int, metric: int, next_address: int, learned_from = -1):
+    def __init__(self, port: int, metric: int, next_address: int, learned_from = -1, output_socket = -1):
         self.port = port
         self.metric = metric
         self.next_address = next_address
@@ -29,6 +30,7 @@ class RouteEntry:
         self.sched_update_time = current_time + timedelta(SCHEDULED_UPDATE_TIME)
         self.timeout_time = current_time + timedelta(TIMEOUT_TIME)
         self.learned_from = learned_from
+        self.output_socket = output_socket
 
     def update_sched_update_time(self, initial_time=datetime.now()) -> datetime:
         """
