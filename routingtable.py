@@ -3,10 +3,18 @@ from routeentry import RouteEntry
 
 
 class RoutingTable:
+    """
+    Contains all of the entries for the routing table, for this router.
+
+    Instance variables:
+    table -- Contains the routing table.
+    router_id -- The router of this router.
+    """
     table: Dict[int, RouteEntry]
 
-    def __init__(self):
+    def __init__(self, router_id):
         self.table = {}
+        self.router_id = router_id
 
     def __len__(self):
         """Returns the length of the routing table"""

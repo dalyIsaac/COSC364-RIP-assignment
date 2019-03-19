@@ -1,16 +1,10 @@
 {
-    "editor.formatOnSave": true,
-    "editor.rulers": [
-        120
-    ],
-    "python.formatting.blackArgs": [
-        "--max-line-length",
-        "120"
-    ],
-    "python.linting.mypyEnabled": true,
-    "python.formatting.provider": "black",
-    "python.unitTest.promptToConfigure": false,
-    "python.unitTest.pyTestEnabled": false,
-    "python.unitTest.unittestEnabled": false,
-    "python.unitTest.nosetestsEnabled": false,
+  "editor.formatOnSave": true,
+  "editor.rulers": [120],
+  "python.linting.mypyEnabled": true,
+  "python.unitTest.pyTestEnabled": false,
+  "python.unitTest.unittestEnabled": true,
+  "python.unitTest.nosetestsEnabled": false,
+  "python.linting.enabled": true,
+  "python.unitTest.unittestArgs": ["-v", "-s", ".", "-p", "*_test.py"]
 }
