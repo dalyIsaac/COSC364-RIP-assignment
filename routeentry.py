@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from random import randint
 from typing import Optional
+from socket import socket
 
 from router import GARBAGE_COLLECTION_TIME, SCHEDULED_UPDATE_TIME, TIMEOUT_TIME
 
@@ -10,7 +11,6 @@ class RouteEntry:
     Entry for a route inside the RIP routing table.
 
     Instance variables:
-    port -- The output port for this `RouteEntry`.
     next_address - the router-id for the next-address along the path to the destination.
     sched_update_time -- The time at which a normally scheduled Response will be sent to other routers.
     timeout_time -- The time at which the timeout occurs, and the deletion process for this `RouteEntry` starts.
@@ -23,13 +23,8 @@ class RouteEntry:
 
     flag = False
 
-    def __init__(self,
-                 port: int,
-                 metric: int,
-                 next_address: int,
-                 learned_from=-1,
-                 output_socket=-1):
-        self.port = port
+    def __init__(self, output_socket: socket, metric: int, next_address: int, learned_from=-1):
+        self.output_socket = output_socket
         self.metric = metric
         self.next_address = next_address
         current_time = datetime.now()
@@ -37,7 +32,6 @@ class RouteEntry:
             SCHEDULED_UPDATE_TIME)
         self.timeout_time = current_time + timedelta(TIMEOUT_TIME)
         self.learned_from = learned_from
-        self.output_socket = output_socket
 
     def update_sched_update_time(self,
                                  initial_time=datetime.now()) -> datetime:
