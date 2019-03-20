@@ -1,7 +1,8 @@
-from typing import Optional
 from datetime import datetime, timedelta
 from random import randint
-from router import SCHEDULED_UPDATE_TIME, TIMEOUT_TIME, GARBAGE_COLLECTION_TIME
+from typing import Optional
+
+from router import GARBAGE_COLLECTION_TIME, SCHEDULED_UPDATE_TIME, TIMEOUT_TIME
 
 
 class RouteEntry:
@@ -22,17 +23,24 @@ class RouteEntry:
 
     flag = False
 
-    def __init__(self, port: int, metric: int, next_address: int, learned_from = -1, output_socket = -1):
+    def __init__(self,
+                 port: int,
+                 metric: int,
+                 next_address: int,
+                 learned_from=-1,
+                 output_socket=-1):
         self.port = port
         self.metric = metric
         self.next_address = next_address
         current_time = datetime.now()
-        self.sched_update_time = current_time + timedelta(SCHEDULED_UPDATE_TIME)
+        self.sched_update_time = current_time + timedelta(
+            SCHEDULED_UPDATE_TIME)
         self.timeout_time = current_time + timedelta(TIMEOUT_TIME)
         self.learned_from = learned_from
         self.output_socket = output_socket
 
-    def update_sched_update_time(self, initial_time=datetime.now()) -> datetime:
+    def update_sched_update_time(self,
+                                 initial_time=datetime.now()) -> datetime:
         """
         Updates the scheduled time at which an update will be sent out for this `RouteEntry`.
         Returns the `initial_time`, which is the what `SCHEDULED_UPDATE_TIME` is added to.
@@ -40,7 +48,8 @@ class RouteEntry:
         Keyword arguments:
         initial_time -- The initial time, as specified. Defaults to `datetime.now()`
         """
-        self.sched_update_time = initial_time + timedelta(SCHEDULED_UPDATE_TIME + randint(-5, 5))
+        self.sched_update_time = initial_time + timedelta(
+            SCHEDULED_UPDATE_TIME + randint(-5, 5))
         return initial_time
 
     def update_timeout_time(self, initial_time=datetime.now()) -> datetime:
@@ -54,7 +63,8 @@ class RouteEntry:
         self.timeout_time = initial_time + timedelta(TIMEOUT_TIME)
         return initial_time
 
-    def set_garbage_collection_time(self, initial_time=datetime.now()) -> datetime:
+    def set_garbage_collection_time(self,
+                                    initial_time=datetime.now()) -> datetime:
         """
         Updates the garbage collection time, at which point this `RouteEntry` will be removed from the table.
         Returns the `initial_time`, which is the what `GARBAGE_COLLECTION_TIME` is added to.

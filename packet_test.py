@@ -1,8 +1,9 @@
-from unittest import main, TestCase
-from routingtable import RoutingTable
-from routeentry import RouteEntry
-from packet import construct_packets, read_packet
 from socket import AF_INET
+from unittest import TestCase, main
+
+from packet import construct_packets, read_packet
+from routeentry import RouteEntry
+from routingtable import RoutingTable
 
 
 def get_single_packet():
