@@ -1,8 +1,9 @@
-from unittest import main, TestCase
-from routingtable import RoutingTable
-from routeentry import RouteEntry
-from packet import construct_packets, read_packet
 from socket import AF_INET
+from unittest import TestCase, main
+
+from packet import construct_packets, read_packet
+from routeentry import RouteEntry
+from routingtable import RoutingTable
 
 
 def get_single_packet():
@@ -52,8 +53,7 @@ class TestPacketConstruction(TestCase):
     def test_single_entry(self):
         """Tests a routing table, where the single entry does not match the given router_id"""
         table = RoutingTable(0)
-        table.add_route(1, RouteEntry(
-            3000, 1, 2))  # port: 3000, metric: 1, next_address: 2
+        table.add_route(1, RouteEntry(None, 1, 2))  # metric: 1, next_address: 2
 
         packets = construct_packets(table, 3)
 
@@ -71,8 +71,8 @@ class TestPacketConstruction(TestCase):
         """
         table_router_id = 1
         table = RoutingTable(table_router_id)
-        table.add_route(1, RouteEntry(3000, 1, 2))
-        table.add_route(2, RouteEntry(3000, 2, 2, 3))
+        table.add_route(1, RouteEntry(None, 1, 2))
+        table.add_route(2, RouteEntry(None, 2, 2, 3))
 
         packets = construct_packets(table, 3)
 
@@ -95,8 +95,8 @@ class TestPacketConstruction(TestCase):
         returned.
         """
         table = RoutingTable(0)
-        table.add_route(1, RouteEntry(3000, 1, 2))
-        table.add_route(2, RouteEntry(3000, 16, 3))
+        table.add_route(1, RouteEntry(None, 1, 2))
+        table.add_route(2, RouteEntry(None, 16, 3))
         table[2].flag = True
 
         packets = construct_packets(table, 1)
@@ -123,8 +123,8 @@ class TestPacketConstruction(TestCase):
         returned.
         """
         table = RoutingTable(0)
-        table.add_route(1, RouteEntry(3000, 1, 2))
-        table.add_route(2, RouteEntry(3000, 16, 3))
+        table.add_route(1, RouteEntry(None, 1, 2))
+        table.add_route(2, RouteEntry(None, 16, 3))
         table[2].flag = False
 
         packets = construct_packets(table, 3)
@@ -149,11 +149,11 @@ class TestPacketConstruction(TestCase):
         # Number of entries inside the table: 32
         # Number of entries being sent out: 31
         table = RoutingTable(0)
-        table.add_route(1, RouteEntry(3000, 1, 2))
-        table.add_route(2, RouteEntry(3000, 16, 3))
+        table.add_route(1, RouteEntry(None, 1, 2))
+        table.add_route(2, RouteEntry(None, 16, 3))
         table[2].flag = False
         for i in range(30):
-            table.add_route(i + 3, RouteEntry(3000, 1, 2))
+            table.add_route(i + 3, RouteEntry(None, 1, 2))
 
         packets = construct_packets(table, 3)
         expected_packets = get_two_packets()
@@ -191,6 +191,7 @@ class TestPacketReading(TestCase):
         self.assertEqual(command, 2)
         self.assertEqual(version, 2)
         self.assertEqual(sender_router_id, 0)
+        self.assertEqual(len(entries), 25)
 
         for i, (afi, target_router_id, metric) in enumerate(entries):
             expected_target_router_id = i + 2 if i + 1 >= 2 else i + 1

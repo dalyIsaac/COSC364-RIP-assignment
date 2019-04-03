@@ -1,15 +1,22 @@
-from router import INFINITY
-from routingtable import RoutingTable
-from routeentry import RouteEntry
+from collections import namedtuple
 from math import ceil
 from socket import AF_INET
-from typing import Iterator, Tuple, Union, List, NewType
+from typing import Iterator, List, NewType, Tuple, Union
+
+from routeentry import RouteEntry
+from router import INFINITY
+from routingtable import RoutingTable
 
 MAX_ENTRIES = 25
 ENTRY_LEN = 20
 HEADER_LEN = 4
 RIP_PACKET_COMMAND = 2
 RIP_VERSION_NUMBER = 2
+
+ResponseEntry = namedtuple("ResponseEntry",
+                           ["afi", "target_router_id", "metric"])
+ResponsePacket = namedtuple(
+    "ResponsePacket", ["command", "version", "sender_router_id", "entries"])
 
 
 def get_next_packet_entries(table: RoutingTable, router_id: int):
@@ -75,14 +82,14 @@ def construct_packets(table: RoutingTable, router_id: int) -> List[bytearray]:
     return packets
 
 
-def get_entry(packet: bytearray, start_index: int) -> Tuple[int, int, int]:
-    """Returns the properties of a single RIP entry."""
+def _read_packet_entry(packet: bytearray, start_index: int) -> ResponseEntry:
+    """Returns the properties of a single RIP entry inside a RIP response packet."""
     afi = int.from_bytes(packet[start_index:start_index + 2], byteorder="big")
     target_router_id = int.from_bytes(
         packet[start_index + 4:start_index + 8], byteorder="big")
     metric = int.from_bytes(
         packet[start_index + 16:start_index + 20], byteorder="big")
-    return afi, target_router_id, metric
+    return ResponseEntry(afi, target_router_id, metric)
 
 
 def read_packet(packet: bytearray):
@@ -96,8 +103,9 @@ def read_packet(packet: bytearray):
 
     while start_index < len(packet):
         end_index = start_index + ENTRY_LEN
-        if end_index < len(packet):
-            entries.append(get_entry(packet, start_index))
+        if end_index <= len(packet):
+            entries.append(_read_packet_entry(packet, start_index))
         else:
             return command, version, sender_router_id, entries
         start_index = end_index
+    return ResponsePacket(command, version, sender_router_id, entries)
