@@ -6,5 +6,12 @@
   "python.unitTest.unittestEnabled": true,
   "python.unitTest.nosetestsEnabled": false,
   "python.linting.enabled": true,
-  "python.unitTest.unittestArgs": ["-v", "-s", ".", "-p", "*_test.py"]
+  "python.unitTest.unittestArgs": [
+    "-v",
+    "-s",
+    ".",
+    "-p",
+    "*_test.py"
+  ],
+  "python.linting.pylintEnabled": false
 }
