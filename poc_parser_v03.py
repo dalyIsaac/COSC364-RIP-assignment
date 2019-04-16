@@ -20,7 +20,8 @@
 # https://stackoverflow.com/questions/6213063/python-read-next
 # 
 # v0_3
-# Grateful help from JPS
+# poc_parser.py
+# Grateful for help from JPS111
 # Reads complete config file since size is small 
 # Uses join and split operations on lines
 #

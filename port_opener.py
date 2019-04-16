@@ -6,6 +6,7 @@ import sys
 def port_opener(ports):
 
     sockets = None
+    
     for a_port in (ports)
 
         in_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -22,4 +23,3 @@ if __name__ == "__main__":
 
     ports = (3001, 4001, 5001)
     port_opener(ports)
-    
