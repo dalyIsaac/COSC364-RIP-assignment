@@ -20,30 +20,30 @@
 import sys
 import os
 
+# Router ID limits
+MIN_ID = 1
+MAX_ID = 64000
+ID_ERROR = 0
+
+# Input / Output port limits
+MIN_PORT = 1024
+MAX_PORT = 64000
+INPUT_PORT_ERROR = 0
+OUTPUT_PORT_ERROR = 0
+
+# Metric limits
+MIN_METRIC = 1
+MAX_METRIC = 15
+INFINITY = 16
+METRIC_ERROR = 0
+
+# Timer ratios
+PERIODIC_DEAD_RATIO = 6
+PERIODIC_GARBAGE_RATIO = 4
+TIMERS_ERROR = 0
+
 
 def validate_data(router_id, input_ports, output_ports, timers):
-
-    # Router ID limits
-    MIN_ID = 1
-    MAX_ID = 64000
-    ID_ERROR = 0
-
-    # Input / Output port limits
-    MIN_PORT = 1024
-    MAX_PORT = 64000
-    INPUT_PORT_ERROR = 0
-    OUTPUT_PORT_ERROR = 0
-
-    # Metric limits
-    MIN_METRIC = 1
-    MAX_METRIC = 15
-    INFINITY = 16
-    METRIC_ERROR = 0
-
-    # Timer ratios
-    PERIODIC_DEAD_RATIO = 6
-    PERIODIC_GARBAGE_RATIO = 4
-    TIMERS_ERROR = 0
 
     # Check Router ID
     temp_ID_set = set()
