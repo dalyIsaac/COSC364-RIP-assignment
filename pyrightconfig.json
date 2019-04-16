@@ -1,0 +1,10 @@
+{
+  "reportMissingImports": "error",
+  "reportMissingTypeStubs": "error",
+  "reportOptionalCall": "error",
+  "reportOptionalMemberAccess": "error",
+  "reportOptionalSubscript": "error",
+  "reportTypeshedErrors": "error",
+  "reportUntypedClassDecorator": "error",
+  "reportUntypedFunctionDecorator": "error"
+}
