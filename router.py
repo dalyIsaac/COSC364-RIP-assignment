@@ -45,7 +45,12 @@ def timeout_processing(table: RoutingTable, entry: RouteEntry):
 def gc_processing(table: RoutingTable, router_id: int, entry: RouteEntry,
                   now: datetime):
     """Starts processing for the garbage collection timer."""
+    ids_to_delete = []
+
     if router_id in table and entry.gc_time and entry.gc_time >= now:
+        ids_to_delete.append(router_id)
+
+    for current_id in ids_to_delete:
         try:
             del table[router_id]
         except KeyError:
