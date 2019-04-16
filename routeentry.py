@@ -50,7 +50,7 @@ class RouteEntry:
         self.metric = metric
         self.next_address = next_address
         current_time = datetime.now()
-        self.timeout_time = current_time + timedelta(timeout_time)
+        self.timeout_time = current_time + timedelta(seconds=timeout_time)
         self.learned_from = learned_from
         self.output_socket = output_socket
 
@@ -68,7 +68,7 @@ class RouteEntry:
 
         initial_time -- The initial time, defaults to `datetime.now()`
         """
-        self.timeout_time = initial_time + timedelta(timeout_time)
+        self.timeout_time = initial_time + timedelta(seconds=timeout_time)
         return initial_time
 
     def set_garbage_collection_time(
@@ -84,5 +84,5 @@ class RouteEntry:
 
         initial_time -- The initial time, as specified. Defaults to `datetime.now()`
         """
-        self.gc_time = initial_time + timedelta(gc_delta)
+        self.gc_time = initial_time + timedelta(seconds=gc_delta)
         return initial_time

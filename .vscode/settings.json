@@ -1,15 +1,13 @@
 {
   "editor.formatOnSave": true,
   "editor.rulers": [120],
-  "python.linting.mypyEnabled": true,
   "python.unitTest.pyTestEnabled": false,
   "python.unitTest.unittestEnabled": true,
   "python.unitTest.nosetestsEnabled": false,
   "python.unitTest.unittestArgs": ["-v", "-s", ".", "-p", "*_test.py"],
   "python.linting.enabled": true,
   "python.linting.flake8Enabled": true,
-  "python.formatting.blackArgs": [
-    "80"
-  ],
+  "python.linting.flake8Args": ["--max-line-length", "80"],
+  "python.formatting.blackArgs": ["--line-length", "80"],
   "python.linting.pylintEnabled": false
 }
