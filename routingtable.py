@@ -1,7 +1,6 @@
 from typing import Dict
 from routeentry import RouteEntry
 from datetime import datetime, timedelta
-from router import SCHEDULED_UPDATE_TIME
 from random import randint
 
 
@@ -13,19 +12,28 @@ class RoutingTable:
     table -- Contains the routing table, in the form of `{[key: router_id]: RouteEntry}`.
     router_id -- The router of this router.
     sched_update_time -- The time at which a normally scheduled Response will be sent to other routers.
+    update_delta -- The delta to increment the `sched_update_time` by.
+    timeout_delta -- The delta for the time after which a route is no longer valid.
+    gc_delta -- The delta for the time after which invalid routes are removed from the table.
     """
 
     table: Dict[int, RouteEntry]
+
     sched_update_time: datetime
 
+    update_delta: int
+    timeout_delta: int
+    gc_delta: int
+
     def __init__(
-        self,
-        router_id: int,
-        sched_update_time: datetime = datetime.now() + timedelta(SCHEDULED_UPDATE_TIME),
+        self, router_id: int, update_delta: int, timeout_delta: int, gc_delta: int
     ):
         self.table = {}
         self.router_id = router_id
-        self.sched_update_time = sched_update_time
+        self.update_delta = update_delta
+        self.update_sched_update_time()
+        self.timeout_delta = timeout_delta
+        self.gc_delta = gc_delta
 
     def __len__(self):
         """Returns the number of items inside the routing table"""
@@ -56,6 +64,6 @@ class RoutingTable:
         initial_time -- The initial time, as specified. Defaults to `datetime.now()`
         """
         self.sched_update_time = initial_time + timedelta(
-            SCHEDULED_UPDATE_TIME + randint(-5, 5)
+            self.update_delta + randint(-5, 5)
         )
         return initial_time
