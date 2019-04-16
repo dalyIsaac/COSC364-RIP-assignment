@@ -13,7 +13,8 @@
 #
 # Version 02
 #   reference material https://www.programiz.com/
-# python-programming/methods/set/isdisjoint                                                    #
+# python-programming/methods/set/isdisjoint
+#   Fixed a bunch of for and if statement format errors                                         #
 #########################################################
 
 import sys
