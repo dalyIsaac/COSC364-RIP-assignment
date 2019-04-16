@@ -38,13 +38,13 @@ class RouteEntry:
     gc_time: Optional[datetime]
 
     def __init__(
-        self,
-        port: int,
-        metric: int,
-        next_address: int,
-        timeout_time: int,
-        learned_from=-1,
-        output_socket=-1,
+            self,
+            port: int,
+            metric: int,
+            next_address: int,
+            timeout_time: int,
+            learned_from=-1,
+            output_socket=-1,
     ):
         self.port = port
         self.metric = metric
@@ -54,9 +54,9 @@ class RouteEntry:
         self.learned_from = learned_from
         self.output_socket = output_socket
 
-    def update_timeout_time(
-        self, timeout_time: int, initial_time=datetime.now()
-    ) -> datetime:
+    def update_timeout_time(self,
+                            timeout_time: int,
+                            initial_time=datetime.now()) -> datetime:
         """
         Updates the timeout time, at which point this `RouteEntry` enter the deletion process.
 
@@ -71,9 +71,9 @@ class RouteEntry:
         self.timeout_time = initial_time + timedelta(seconds=timeout_time)
         return initial_time
 
-    def set_garbage_collection_time(
-        self, gc_delta: int, initial_time=datetime.now()
-    ) -> datetime:
+    def set_garbage_collection_time(self,
+                                    gc_delta: int,
+                                    initial_time=datetime.now()) -> datetime:
         """
         Updates the garbage collection time, at which point this `RouteEntry` will be removed from the table.
 
@@ -86,3 +86,8 @@ class RouteEntry:
         """
         self.gc_time = initial_time + timedelta(seconds=gc_delta)
         return initial_time
+
+    def update_route(self, timeout_time: int):
+        # TODO
+        self.update_timeout_time(timeout_time)
+        self.gc_time = None

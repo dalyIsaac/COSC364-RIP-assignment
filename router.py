@@ -27,12 +27,6 @@ def send_responses(table: RoutingTable):
             send_response(table, router_id, packet)
 
 
-def triggered_update():
-    """Sends a triggered update."""
-    # TODO
-    pass
-
-
 def timeout_processing(table: RoutingTable, entry: RouteEntry):
     """Starts processing for the timeout timer."""
     entry.set_garbage_collection_time(table.gc_delta)
@@ -45,7 +39,17 @@ def timeout_processing(table: RoutingTable, entry: RouteEntry):
     # Suppresses the update if another triggered update has been sent
     if can_update:
         # Send triggered updates
-        triggered_update()
+        pool.submit(send_responses, (table))
+
+
+def gc_processing(table: RoutingTable, router_id: int, entry: RouteEntry,
+                  now: datetime):
+    """Starts processing for the garbage collection timer."""
+    if router_id in table and entry.gc_time and entry.gc_time >= now:
+        try:
+            del table[router_id]
+        except KeyError:
+            print(f"router-id {router_id} wasn't in the table at this time.")
 
 
 def deletion_process(table: RoutingTable):
@@ -58,9 +62,8 @@ def deletion_process(table: RoutingTable):
         entry: RouteEntry = table[router_id]
         if entry.timeout_time <= now:
             pool.submit(timeout_processing, (entry))
-        elif entry.gc_time is not None and entry.gc_time <= now:
-            # TODO: garbage collection processing
-            pass
+        elif entry.gc_time is not None:
+            gc_processing(table, router_id, entry, now)
 
 
 def daemon(table: RoutingTable):
