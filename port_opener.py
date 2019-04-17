@@ -61,6 +61,6 @@ def port_opener(output_ports):
 
 if __name__ == "__main__":
 
-    # ouput ports, cost, destination id
+    # output ports, cost, destination id
     output_ports = ( (3001, 4001, 5001),(1,2,3),(3,4,5) )
     port_opener(output_ports)
