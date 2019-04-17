@@ -90,8 +90,3 @@ class RouteEntry:
         """
         self.gc_time = initial_time + timedelta(seconds=gc_delta)
         return initial_time
-
-    def update_route(self, timeout_time: int):
-        # TODO
-        self.update_timeout_time(timeout_time)
-        self.gc_time = None
