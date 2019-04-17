@@ -18,7 +18,7 @@
 # 
 # Version 04: 
 #   need a try catch exception handler, in case a port
-#   did not open/bind which returns am error code so
+#   did not open/bind which returns an error code so
 #   main can close everything and exit
 #                                         
 #########################################################
