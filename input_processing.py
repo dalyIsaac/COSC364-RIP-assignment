@@ -7,6 +7,7 @@ from packet import ResponseEntry, ResponsePacket, read_packet, validate_packet
 from routeentry import RouteEntry
 from routingtable import RoutingTable
 from validate_data import INFINITY, MAX_ID, MIN_ID
+from output_processing import pool, deletion_process, send_responses
 
 MIN_METRIC = 1
 MAX_METRIC = INFINITY
@@ -51,7 +52,7 @@ def add_route(
     entry.gc_time = None
     entry.flag = True
     table.add_route(response.router_id, entry)
-    # TODO: trigger an update
+    pool.submit(send_responses, (table))
 
 
 def adopt_route(
@@ -64,10 +65,9 @@ def adopt_route(
     entry.metric = new_metric
     entry.next_address = learned_from
     entry.flag = True
-    # TODO: trigger an update
+    pool.submit(send_responses, (table))
     if new_metric == INFINITY:
-        # TODO: start the deletion process
-        pass
+        pool.submit(deletion_process, (table))
     else:
         entry.update_timeout_time(table.timeout_delta)
 
@@ -90,8 +90,7 @@ def update_table(
         adopt_route(table, entry, new_metric, learned_from)
     elif new_metric == INFINITY:
         if entry.metric != INFINITY:
-            # TODO: start the deletion process
-            pass
+            pool.submit(deletion_process, (table))
     elif new_metric == entry.metric:
         # If the timeout for the existing route is at least halfway to the
         # expiration point, switch to the new route.
