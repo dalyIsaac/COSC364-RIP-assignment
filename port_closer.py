@@ -4,46 +4,45 @@
 #
 # Version 01: 17 April 2019
 #   First pass
-#  
+#
 # Version 02:
 #   Return codes:
 #   1 => error closing input ports
 #   2 => error closing output ports
 #   3 => error closing input and output ports
-#                                         
+#
+# Version 03: 18 April 2019
+#   Only needs to work with list of input sockets
+#
 #########################################################
 
 import socket
-import sys
+from port_opener import port_opener
 
-ERROR_CODE = 0
+# import sys
 
-def port_closer(input_sockets, output_sockets):
 
-        
-    for a_socket, in input_sockets:
+def port_closer(socket_list):
+
+    for a_socket in socket_list:
         try:
+            name = a_socket.getsockname()
             a_socket.close()
-        except:
-            ERROR_CODE = 1
 
-    for a_socket,an_id in output_sockets:
-        try:
-            a_socket.close()
-        except:
-            if (ERROR_CODE == 1):
-                ERROR_CODE = 3
-            else
-                ERROR_CODE = 2
+            print("Closed socket / port, ", a_socket, "/", name)
 
-    return(ERROR_CODE)
+        except (Exception):
+            return 1
+
+    return 0
 
 
 if __name__ == "__main__":
 
-    # input ports
-    input_ports (1033,1044,1055)
-    # output ports, cost, destination id
-    output_ports = ( (3001, 4001, 5001),(1,2,3),(3,4,5) )
+    # open input ports
+    input_ports = (3001, 4001, 5001)
+    socket_list = port_opener(input_ports)
+    print(socket_list)
 
-    port_closer(input_ports,output_ports)
+    # input ports
+    port_closer(socket_list)
