@@ -1,11 +1,12 @@
-from routingtable import RoutingTable
-from packet import validate_packet, read_packet, ResponsePacket, ResponseEntry
-from validate_data import MIN_ID, MAX_ID, INFINITY
-from typing import List, Tuple
-from routeentry import RouteEntry
 from datetime import datetime, timedelta
 from select import select
 from socket import socket
+from typing import List, Tuple
+
+from packet import ResponseEntry, ResponsePacket, read_packet, validate_packet
+from routeentry import RouteEntry
+from routingtable import RoutingTable
+from validate_data import INFINITY, MAX_ID, MIN_ID
 
 MIN_METRIC = 1
 MAX_METRIC = INFINITY

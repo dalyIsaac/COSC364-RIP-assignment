@@ -1,8 +1,8 @@
 from socket import AF_INET
 from typing import List, NamedTuple
-from validate_data import INFINITY
 
 from routingtable import RoutingTable
+from validate_data import INFINITY
 
 MAX_ENTRIES = 25
 ENTRY_LEN = 20

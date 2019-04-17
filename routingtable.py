@@ -1,8 +1,9 @@
-from typing import Dict, Iterator, Optional
-from routeentry import RouteEntry
 from datetime import datetime, timedelta
 from random import randint
 from time import sleep
+from typing import Dict, Iterator, Optional
+
+from routeentry import RouteEntry
 
 
 class RoutingTable:
