@@ -4,17 +4,21 @@
 #   config file is valid. Will print an error message
 #   and exit program
 #
-# Version 01 16 April 2019
+# Version 01; 16 April 2019
 #   First pass
 #   Help from ID for the checking a set length idea
 #   Needs checking output ports, metric
 #   Design decision to seperate the config file parser
 #    and validation of the read data
 #
-# Version 02
+# Version 02;
 #   reference material https://www.programiz.com/
 # python-programming/methods/set/isdisjoint
-#   Fixed a bunch of for and if statement format errors                                         #
+#   Fixed a bunch of for and if statement format errors
+# 
+# Version 03: 17April 2019
+#   more tidy up
+#                                       
 #########################################################
 
 import sys
