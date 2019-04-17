@@ -16,8 +16,8 @@ def send_response(
     """
     Sends a `Response` packet to the given `router_id`.
     """
-    # TODO
-    pass
+    # Ignore the pyright error - it fails to resolve bytearray and bytes, when it really should
+    sock.sendto(packet, ("localhost", table[router_id].port))
 
 
 def _send_responses(table: RoutingTable, sock: socket, clear_flags=False):
