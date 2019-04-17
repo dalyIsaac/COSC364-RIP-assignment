@@ -89,9 +89,13 @@ def update_table(
     ) or new_metric < entry.metric:
         adopt_route(table, entry, new_metric, learned_from)
     elif new_metric == INFINITY:
+        # nothing happens if the entry's existing metric is `INFINITY`
         if entry.metric != INFINITY:
             pool.submit(deletion_process, (table))
-    elif new_metric == entry.metric:
+    elif new_metric == entry.metric and learned_from != entry.next_address:
+        # Adding a check for `learned_from` means that the entyr will not be
+        # updated if its the same as the old entry.
+
         # If the timeout for the existing route is at least halfway to the
         # expiration point, switch to the new route.
         time_diff: timedelta = entry.timeout_time - datetime.now()

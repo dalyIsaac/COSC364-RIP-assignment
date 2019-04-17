@@ -10,7 +10,7 @@ class RouteEntry:
 
     flag -- Set to `True` to indicate that the entry has changed.
 
-    port -- The output port for this `RouteEntry`.
+    port -- The port that this `RouteEntry` is going to be sent to.
 
     metric -- The cost in total.
 

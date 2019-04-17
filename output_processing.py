@@ -17,19 +17,24 @@ def send_response(table: RoutingTable, router_id: int, packet: bytearray):
     pass
 
 
-def _send_responses(table: RoutingTable):
+def _send_responses(table: RoutingTable, clear_flags=False):
     for router_id in table:
         packets = construct_packets(table, router_id)
         for packet in packets:
             send_response(table, router_id, packet)
 
+    if clear_flags:
+        for router_id in table:
+            entry: RouteEntry = table[router_id]
+            entry.flag = False
 
-def send_responses(table: RoutingTable):
+
+def send_responses(table: RoutingTable, clear_flags=False):
     """
     Sends unsolicited `Response` messages containing the entire routing
     table to every neighbouring router.
     """
-    pool.submit(_send_responses, (table))
+    pool.submit(_send_responses, (table, clear_flags))
 
 
 def timeout_processing(table: RoutingTable, entry: RouteEntry):
@@ -44,7 +49,7 @@ def timeout_processing(table: RoutingTable, entry: RouteEntry):
     # Suppresses the update if another triggered update has been sent
     if can_update:
         # Send triggered updates
-        pool.submit(send_responses, (table))
+        send_responses(table, True)
 
 
 def gc_processing(
