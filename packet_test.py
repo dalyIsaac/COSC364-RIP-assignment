@@ -26,18 +26,18 @@ def get_two_packets():
     for i in range(25):
         if i + diff == 2:
             diff += 1
-        packet1[i * 20 + 4:i * 20 + 6] = AF_INET.to_bytes(2, "big")
-        packet1[i * 20 + 8:i * 20 + 12] = (i + diff).to_bytes(4, "big")
-        packet1[i * 20 + 20:i * 20 + 24] = (1).to_bytes(4, "big")
+        packet1[i * 20 + 4 : i * 20 + 6] = AF_INET.to_bytes(2, "big")
+        packet1[i * 20 + 8 : i * 20 + 12] = (i + diff).to_bytes(4, "big")
+        packet1[i * 20 + 20 : i * 20 + 24] = (1).to_bytes(4, "big")
 
     packet2 = bytearray(124)
     packet2[0] = 2
     packet2[1] = 2
     packet2[2:4] = (0).to_bytes(2, "big")
     for i in range(6):
-        packet2[i * 20 + 4:i * 20 + 6] = AF_INET.to_bytes(2, "big")
-        packet2[i * 20 + 8:i * 20 + 12] = (i + 27).to_bytes(4, "big")
-        packet2[i * 20 + 20:i * 20 + 24] = (1).to_bytes(4, "big")
+        packet2[i * 20 + 4 : i * 20 + 6] = AF_INET.to_bytes(2, "big")
+        packet2[i * 20 + 8 : i * 20 + 12] = (i + 27).to_bytes(4, "big")
+        packet2[i * 20 + 20 : i * 20 + 24] = (1).to_bytes(4, "big")
 
     return packet1, packet2
 
@@ -114,9 +114,9 @@ class TestPacketConstruction(TestCase):
         expected_packet[4:6] = AF_INET.to_bytes(2, "big")
         expected_packet[8:12] = (1).to_bytes(4, "big")
         expected_packet[20:24] = (1).to_bytes(4, "big")
-        expected_packet[20 + 4:20 + 6] = AF_INET.to_bytes(2, "big")
-        expected_packet[20 + 8:20 + 12] = (2).to_bytes(4, "big")
-        expected_packet[20 + 20:20 + 24] = (16).to_bytes(4, "big")
+        expected_packet[20 + 4 : 20 + 6] = AF_INET.to_bytes(2, "big")
+        expected_packet[20 + 8 : 20 + 12] = (2).to_bytes(4, "big")
+        expected_packet[20 + 20 : 20 + 24] = (16).to_bytes(4, "big")
 
         self.assertEqual(len(packets), 1)
         packet = packets[0]
@@ -182,9 +182,9 @@ class TestPacketReading(TestCase):
         self.assertEqual(version, 2)
         self.assertEqual(sender_router_id, 0)
         self.assertEqual(len(entries), 1)
-        for afi, target_router_id, metric in entries:
+        for afi, router_id, metric in entries:
             self.assertEqual(afi, AF_INET)
-            self.assertEqual(target_router_id, 1)
+            self.assertEqual(router_id, 1)
             self.assertEqual(metric, 1)
 
     def test_multiple_entries(self):
@@ -200,10 +200,10 @@ class TestPacketReading(TestCase):
         self.assertEqual(sender_router_id, 0)
         self.assertEqual(len(entries), 25)
 
-        for i, (afi, target_router_id, metric) in enumerate(entries):
-            expected_target_router_id = i + 2 if i + 1 >= 2 else i + 1
+        for i, (afi, router_id, metric) in enumerate(entries):
+            expected_router_id = i + 2 if i + 1 >= 2 else i + 1
             self.assertEqual(afi, AF_INET)
-            self.assertEqual(target_router_id, expected_target_router_id)
+            self.assertEqual(router_id, expected_router_id)
             self.assertEqual(metric, 1)
 
 

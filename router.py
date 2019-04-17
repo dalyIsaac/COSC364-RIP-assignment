@@ -1,10 +1,10 @@
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
-from packet import construct_packets, validate_packet, ResponsePacket
+from packet import construct_packets
 from routingtable import RoutingTable
 from routeentry import RouteEntry
 from validate_data import INFINITY
-from typing import List
+from input_processing import input_processing
 
 pool = ThreadPoolExecutor()
 
@@ -73,27 +73,11 @@ def deletion_process(table: RoutingTable):
             gc_processing(table, router_id, entry, now)
 
 
-def get_packets() -> List[ResponsePacket]:
-    # TODO: reads received packets from the input ports
-    return []
-
-
-def input_processing(table: RoutingTable):
-    """
-    The processing is the same, no matter why the Response was generated.
-    """
-    for packet in get_packets():
-        if validate_packet(table, packet):
-            # TODO
-            pass
-
-
 def daemon(table: RoutingTable):
     """Main body of the router."""
     while True:
         while table.sched_update_time < datetime.now():
-            # TODO: input processing here
-            pass
+            input_processing(table)
 
         pool.submit(send_responses, (table))
         table.update_sched_update_time()

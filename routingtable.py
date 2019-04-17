@@ -66,6 +66,12 @@ class RoutingTable:
         """
         return self.table[index]
 
+    def __contains__(self, router_id: int) -> bool:
+        """
+        Checks to see if the given `router_id` is inside the routing table.
+        """
+        return router_id in self.table
+
     def neighbours(self):
         """
         Returns the `router_id`s of the neighbouring routers.

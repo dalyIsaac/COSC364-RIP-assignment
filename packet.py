@@ -11,9 +11,7 @@ HEADER_LEN = 4
 RIP_PACKET_COMMAND = 2
 RIP_VERSION_NUMBER = 2
 
-ResponseEntry = namedtuple(
-    "ResponseEntry", ["afi", "target_router_id", "metric"]
-)
+ResponseEntry = namedtuple("ResponseEntry", ["afi", "router_id", "metric"])
 
 ResponsePacket = namedtuple(
     "ResponsePacket", ["command", "version", "sender_router_id", "entries"]
@@ -95,13 +93,13 @@ def _read_packet_entry(packet: bytearray, start_index: int) -> ResponseEntry:
     Returns the properties of a single RIP entry inside a RIP response packet.
     """
     afi = int.from_bytes(packet[start_index : start_index + 2], byteorder="big")
-    target_router_id = int.from_bytes(
+    router_id = int.from_bytes(
         packet[start_index + 4 : start_index + 8], byteorder="big"
     )
     metric = int.from_bytes(
         packet[start_index + 16 : start_index + 20], byteorder="big"
     )
-    return ResponseEntry(afi, target_router_id, metric)
+    return ResponseEntry(afi, router_id, metric)
 
 
 def read_packet(packet: bytearray) -> ResponsePacket:
