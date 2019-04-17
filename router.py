@@ -5,6 +5,9 @@ from routingtable import RoutingTable
 from routeentry import RouteEntry
 from validate_data import INFINITY
 from input_processing import input_processing
+from socket import socket
+from typing import List
+
 
 pool = ThreadPoolExecutor()
 
@@ -73,11 +76,11 @@ def deletion_process(table: RoutingTable):
             gc_processing(table, router_id, entry, now)
 
 
-def daemon(table: RoutingTable):
+def daemon(table: RoutingTable, sockets: List[socket]):
     """Main body of the router."""
     while True:
         while table.sched_update_time < datetime.now():
-            input_processing(table)
+            input_processing(table, sockets)
 
         pool.submit(send_responses, (table))
         table.update_sched_update_time()

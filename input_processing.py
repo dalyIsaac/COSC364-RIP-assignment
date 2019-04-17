@@ -1,9 +1,11 @@
 from routingtable import RoutingTable
-from packet import validate_packet, ResponsePacket, ResponseEntry
+from packet import validate_packet, read_packet, ResponsePacket, ResponseEntry
 from validate_data import MIN_ID, MAX_ID, INFINITY
 from typing import List, Tuple
 from routeentry import RouteEntry
 from datetime import datetime, timedelta
+from select import select
+from socket import socket
 
 MIN_METRIC = 1
 MAX_METRIC = INFINITY
@@ -75,6 +77,10 @@ def update_table(
     new_metric: int,
     learned_from: int,
 ):
+    """
+    Goes through the process of updating the routing table with the new route,
+    if applicable.
+    """
     entry: RouteEntry = table[response.router_id]
 
     if (
@@ -86,7 +92,7 @@ def update_table(
             # TODO: start the deletion process
             pass
     elif new_metric == entry.metric:
-        # if the timeout for the existing route is at least halfway to the
+        # If the timeout for the existing route is at least halfway to the
         # expiration point, switch to the new route.
         time_diff: timedelta = entry.timeout_time - datetime.now()
         half_time = table.timeout_delta / 2
@@ -109,22 +115,31 @@ def process_entry(
         new_metric = INFINITY
 
     if entry.router_id in table:
-        # TODO: go through the process for updating the routing table.
-        pass
+        update_table(table, entry, new_metric, packet.sender_router_id)
     else:
         add_route(table, entry, new_metric, port, packet.sender_router_id)
 
 
-def get_packets() -> List[Tuple[ResponsePacket, int]]:
-    # TODO: reads received packets from the input ports
-    return []
+def get_packets(sockets: List[socket]) -> List[Tuple[ResponsePacket, int]]:
+    """Reads received packets from the input ports/sockets."""
+    read: List[socket]
+    read, _, _ = select(sockets, [], [], 1)
+
+    packets = []
+
+    for sock in read:
+        _, port = sock.getsockname()
+        packet, client_address = sock.recvfrom(1024)
+        packets.append((read_packet(packet), port))
+
+    return packets
 
 
-def input_processing(table: RoutingTable):
+def input_processing(table: RoutingTable, sockets: List[socket]):
     """
     The processing is the same, no matter why the Response was generated.
     """
-    for packet, port in get_packets():
+    for packet, port in get_packets(sockets):
         if validate_packet(table, packet):
             for entry in packet.entries:
                 process_entry(table, entry, packet, port)
