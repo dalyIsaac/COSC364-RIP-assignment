@@ -72,6 +72,12 @@ class RoutingTable:
         """
         return router_id in self.table
 
+    def __delitem__(self, router_id: int):
+        """
+        Removes the `router_id` and associated `RouteEntry` from the table.
+        """
+        self.remove_route(router_id)
+
     def neighbours(self):
         """
         Returns the `router_id`s of the neighbouring routers.
@@ -85,7 +91,9 @@ class RoutingTable:
         self.table[router_id] = route
 
     def remove_route(self, router_id: int) -> None:
-        """Removes the `router_id` and RouteEntry` from the table."""
+        """
+        Removes the `router_id` and associated `RouteEntry` from the table.
+        """
         del self.table[router_id]
 
     def update_sched_update_time(self, initial_time=datetime.now()) -> datetime:
