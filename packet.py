@@ -1,6 +1,5 @@
-from collections import namedtuple
 from socket import AF_INET
-from typing import List
+from typing import List, NamedTuple
 from validate_data import INFINITY
 
 from routingtable import RoutingTable
@@ -11,11 +10,18 @@ HEADER_LEN = 4
 RIP_PACKET_COMMAND = 2
 RIP_VERSION_NUMBER = 2
 
-ResponseEntry = namedtuple("ResponseEntry", ["afi", "router_id", "metric"])
 
-ResponsePacket = namedtuple(
-    "ResponsePacket", ["command", "version", "sender_router_id", "entries"]
-)
+class ResponseEntry(NamedTuple):
+    afi: int
+    router_id: int
+    metric: int
+
+
+class ResponsePacket(NamedTuple):
+    command: int
+    version: int
+    sender_router_id: int
+    entries: List[ResponseEntry]
 
 
 def get_next_packet_entries(table: RoutingTable, router_id: int):
