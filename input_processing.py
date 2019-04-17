@@ -39,6 +39,9 @@ def add_route(
     port: int,
     learned_from: int,
 ):
+    """
+    Adds a newly learned route to the routing table.
+    """
     entry = RouteEntry(
         port, metric, learned_from, table.timeout_delta, learned_from
     )
@@ -46,6 +49,24 @@ def add_route(
     entry.flag = True
     table.add_route(response.router_id, entry)
     # TODO: trigger an update
+
+
+def adopt_route(
+    table: RoutingTable, entry: RouteEntry, new_metric: int, learned_from: int
+):
+    """
+    Adopts the newly received route, and updates the existing routing table
+    entry.
+    """
+    entry.metric = new_metric
+    entry.next_address = learned_from
+    entry.flag = True
+    # TODO: trigger an update
+    if new_metric == INFINITY:
+        # TODO: start the deletion process
+        pass
+    else:
+        entry.update_timeout_time(table.timeout_delta)
 
 
 def update_table(
@@ -59,15 +80,7 @@ def update_table(
     if (
         learned_from == entry.next_address and new_metric != entry.metric
     ) or new_metric < entry.metric:
-        entry.metric = new_metric
-        entry.next_address = learned_from
-        entry.flag = True
-        # TODO: trigger an update
-        if new_metric == INFINITY:
-            # TODO: start the deletion process
-            pass
-        else:
-            entry.update_timeout_time(table.timeout_delta)
+        adopt_route(table, entry, new_metric, learned_from)
     elif new_metric == INFINITY:
         if entry.metric != INFINITY:
             # TODO: start the deletion process
@@ -78,8 +91,7 @@ def update_table(
         time_diff: timedelta = entry.timeout_time - datetime.now()
         half_time = table.timeout_delta / 2
         if time_diff.seconds >= half_time:
-            # TODO: switch to the new route
-            pass
+            adopt_route(table, entry, new_metric, learned_from)
     else:
         # Drop all the remaining packets
         pass
