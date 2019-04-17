@@ -1,5 +1,6 @@
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
+from socket import socket
 
 from packet import construct_packets
 from routeentry import RouteEntry
@@ -9,7 +10,9 @@ from validate_data import INFINITY
 pool = ThreadPoolExecutor()
 
 
-def send_response(table: RoutingTable, router_id: int, packet: bytearray):
+def send_response(
+    table: RoutingTable, sock: socket, router_id: int, packet: bytearray
+):
     """
     Sends a `Response` packet to the given `router_id`.
     """
@@ -17,11 +20,11 @@ def send_response(table: RoutingTable, router_id: int, packet: bytearray):
     pass
 
 
-def _send_responses(table: RoutingTable, clear_flags=False):
+def _send_responses(table: RoutingTable, sock: socket, clear_flags=False):
     for router_id in table:
         packets = construct_packets(table, router_id)
         for packet in packets:
-            send_response(table, router_id, packet)
+            send_response(table, sock, router_id, packet)
 
     if clear_flags:
         for router_id in table:
@@ -29,7 +32,7 @@ def _send_responses(table: RoutingTable, clear_flags=False):
             entry.flag = False
 
 
-def send_responses(table: RoutingTable, clear_flags=False):
+def send_responses(table: RoutingTable, sock: socket, clear_flags=False):
     """
     Sends unsolicited `Response` messages containing the entire routing
     table to every neighbouring router.
@@ -37,7 +40,7 @@ def send_responses(table: RoutingTable, clear_flags=False):
     pool.submit(_send_responses, (table, clear_flags))
 
 
-def timeout_processing(table: RoutingTable, entry: RouteEntry):
+def timeout_processing(table: RoutingTable, entry: RouteEntry, sock: socket):
     """Starts processing for the timeout timer."""
     entry.set_garbage_collection_time(table.gc_delta)
     entry.metric = INFINITY
@@ -49,7 +52,7 @@ def timeout_processing(table: RoutingTable, entry: RouteEntry):
     # Suppresses the update if another triggered update has been sent
     if can_update:
         # Send triggered updates
-        send_responses(table, True)
+        send_responses(table, sock, True)
 
 
 def gc_processing(
@@ -68,7 +71,7 @@ def gc_processing(
             print(f"router-id {router_id} wasn't in the table at this time.")
 
 
-def deletion_process(table: RoutingTable):
+def deletion_process(table: RoutingTable, sock: socket):
     """
     Handles the timeout and garbage collection timer processing for the
     routing table.
@@ -77,6 +80,6 @@ def deletion_process(table: RoutingTable):
     for router_id in table:
         entry: RouteEntry = table[router_id]
         if entry.timeout_time <= now:
-            pool.submit(timeout_processing, (entry))
+            pool.submit(timeout_processing, (entry, sock))
         elif entry.gc_time is not None:
             gc_processing(table, router_id, entry, now)

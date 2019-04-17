@@ -42,6 +42,7 @@ def add_route(
     metric: int,
     port: int,
     learned_from: int,
+    sock: socket,
 ):
     """
     Adds a newly learned route to the routing table.
@@ -52,11 +53,15 @@ def add_route(
     entry.gc_time = None
     entry.flag = True
     table.add_route(response.router_id, entry)
-    pool.submit(send_responses, (table))
+    send_responses(table, sock)
 
 
 def adopt_route(
-    table: RoutingTable, entry: RouteEntry, new_metric: int, learned_from: int
+    table: RoutingTable,
+    entry: RouteEntry,
+    new_metric: int,
+    learned_from: int,
+    sock: socket,
 ):
     """
     Adopts the newly received route, and updates the existing routing table
@@ -65,7 +70,7 @@ def adopt_route(
     entry.metric = new_metric
     entry.next_address = learned_from
     entry.flag = True
-    pool.submit(send_responses, (table))
+    send_responses(table, sock)
     if new_metric == INFINITY:
         pool.submit(deletion_process, (table))
     else:
@@ -77,6 +82,7 @@ def update_table(
     response: ResponseEntry,
     new_metric: int,
     learned_from: int,
+    sock: socket,
 ):
     """
     Goes through the process of updating the routing table with the new route,
@@ -87,7 +93,7 @@ def update_table(
     if (
         learned_from == entry.next_address and new_metric != entry.metric
     ) or new_metric < entry.metric:
-        adopt_route(table, entry, new_metric, learned_from)
+        adopt_route(table, entry, new_metric, learned_from, sock)
     elif new_metric == INFINITY:
         # nothing happens if the entry's existing metric is `INFINITY`
         if entry.metric != INFINITY:
@@ -101,14 +107,18 @@ def update_table(
         time_diff: timedelta = entry.timeout_time - datetime.now()
         half_time = table.timeout_delta / 2
         if time_diff.seconds >= half_time:
-            adopt_route(table, entry, new_metric, learned_from)
+            adopt_route(table, entry, new_metric, learned_from, sock)
     else:
         # Drop all the remaining packets
         pass
 
 
 def process_entry(
-    table: RoutingTable, entry: ResponseEntry, packet: ResponsePacket, port: int
+    table: RoutingTable,
+    entry: ResponseEntry,
+    packet: ResponsePacket,
+    port: int,
+    sock: socket,
 ):
     if not validate_entry(entry):
         return
@@ -119,12 +129,14 @@ def process_entry(
         new_metric = INFINITY
 
     if entry.router_id in table:
-        update_table(table, entry, new_metric, packet.sender_router_id)
+        update_table(table, entry, new_metric, packet.sender_router_id, sock)
     else:
-        add_route(table, entry, new_metric, port, packet.sender_router_id)
+        add_route(table, entry, new_metric, port, packet.sender_router_id, sock)
 
 
-def get_packets(sockets: List[socket]) -> List[Tuple[ResponsePacket, int]]:
+def get_packets(
+    sockets: List[socket]
+) -> List[Tuple[ResponsePacket, int, socket]]:
     """Reads received packets from the input ports/sockets."""
     read: List[socket]
     read, _, _ = select(sockets, [], [], 1)
@@ -134,7 +146,7 @@ def get_packets(sockets: List[socket]) -> List[Tuple[ResponsePacket, int]]:
     for sock in read:
         _, port = sock.getsockname()
         packet, client_address = sock.recvfrom(1024)
-        packets.append((read_packet(packet), port))
+        packets.append((read_packet(packet), port, sock))
 
     return packets
 
@@ -143,7 +155,7 @@ def input_processing(table: RoutingTable, sockets: List[socket]):
     """
     The processing is the same, no matter why the Response was generated.
     """
-    for packet, port in get_packets(sockets):
+    for packet, port, sock in get_packets(sockets):
         if validate_packet(table, packet):
             for entry in packet.entries:
-                process_entry(table, entry, packet, port)
+                process_entry(table, entry, packet, port, sock)
