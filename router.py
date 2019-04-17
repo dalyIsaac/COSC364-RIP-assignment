@@ -1,9 +1,10 @@
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
-from packet import construct_packets
+from packet import construct_packets, validate_packet, ResponsePacket
 from routingtable import RoutingTable
 from routeentry import RouteEntry
 from validate_data import INFINITY
+from typing import List
 
 pool = ThreadPoolExecutor()
 
@@ -42,8 +43,9 @@ def timeout_processing(table: RoutingTable, entry: RouteEntry):
         pool.submit(send_responses, (table))
 
 
-def gc_processing(table: RoutingTable, router_id: int, entry: RouteEntry,
-                  now: datetime):
+def gc_processing(
+    table: RoutingTable, router_id: int, entry: RouteEntry, now: datetime
+):
     """Starts processing for the garbage collection timer."""
     ids_to_delete = []
 
@@ -69,6 +71,21 @@ def deletion_process(table: RoutingTable):
             pool.submit(timeout_processing, (entry))
         elif entry.gc_time is not None:
             gc_processing(table, router_id, entry, now)
+
+
+def get_packets() -> List[ResponsePacket]:
+    # TODO: reads received packets from the input ports
+    return []
+
+
+def input_processing(table: RoutingTable):
+    """
+    The processing is the same, no matter why the Response was generated.
+    """
+    for packet in get_packets():
+        if validate_packet(table, packet):
+            # TODO
+            pass
 
 
 def daemon(table: RoutingTable):

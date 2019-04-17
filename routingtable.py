@@ -66,6 +66,12 @@ class RoutingTable:
         """
         return self.table[index]
 
+    def neighbours(self):
+        """
+        Returns the `router_id`s of the neighbouring routers.
+        """
+        return self.table.keys()
+
     def add_route(self, router_id: int, route: RouteEntry) -> None:
         """
         Adds the `RouteEntry`  to the table, and associates it with the given
