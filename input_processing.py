@@ -1,7 +1,8 @@
 from routingtable import RoutingTable
 from packet import validate_packet, ResponsePacket, ResponseEntry
 from validate_data import MIN_ID, MAX_ID, INFINITY
-from typing import List
+from typing import List, Tuple
+from routeentry import RouteEntry
 
 MIN_METRIC = 1
 MAX_METRIC = INFINITY
@@ -30,7 +31,25 @@ def validate_entry(entry: ResponseEntry) -> bool:
     return True
 
 
-def process_entry(table: RoutingTable, entry: ResponseEntry):
+def add_route(
+    table: RoutingTable,
+    response: ResponseEntry,
+    metric: int,
+    port: int,
+    learned_from: int,
+):
+    entry = RouteEntry(
+        port, metric, learned_from, table.timeout_delta, learned_from
+    )
+    entry.gc_time = None
+    entry.flag = True
+    table.add_route(response.router_id, entry)
+    # TODO: trigger an update
+
+
+def process_entry(
+    table: RoutingTable, entry: ResponseEntry, packet: ResponsePacket, port: int
+):
     if not validate_entry(entry):
         return
 
@@ -43,11 +62,10 @@ def process_entry(table: RoutingTable, entry: ResponseEntry):
         # TODO: go through the process for updating the routing table.
         pass
     else:
-        # TODO: add the new route to the routing table
-        pass
+        add_route(table, entry, new_metric, port, packet.sender_router_id)
 
 
-def get_packets() -> List[ResponsePacket]:
+def get_packets() -> List[Tuple[ResponsePacket, int]]:
     # TODO: reads received packets from the input ports
     return []
 
@@ -56,7 +74,7 @@ def input_processing(table: RoutingTable):
     """
     The processing is the same, no matter why the Response was generated.
     """
-    for packet in get_packets():
+    for packet, port in get_packets():
         if validate_packet(table, packet):
             for entry in packet.entries:
-                process_entry(table, entry)
+                process_entry(table, entry, packet, port)
