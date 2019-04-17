@@ -1,5 +1,5 @@
-from typing import Optional
 from datetime import datetime, timedelta
+from typing import Optional
 
 
 class RouteEntry:
@@ -21,9 +21,6 @@ class RouteEntry:
     learned from. `-1` if the router wasn't learned from anyone (i.e. learned
     from the config file on startup).
 
-    output_socket -- The output socket for this router to communicate with the
-    router specified in this `RouteEntry`.
-
     timeout_time -- The delta for the time at which the timeout occurs, and the
     deletion process for this `RouteEntry` starts. This is not stored.
 
@@ -36,19 +33,17 @@ class RouteEntry:
     metric: int
     next_address: int
     learned_from: int
-    output_socket: int
 
     timeout_time: datetime
     gc_time: Optional[datetime]
 
     def __init__(
-            self,
-            port: int,
-            metric: int,
-            next_address: int,
-            timeout_time: int,
-            learned_from=-1,
-            output_socket=-1,
+        self,
+        port: int,
+        metric: int,
+        next_address: int,
+        timeout_time: int,
+        learned_from=-1,
     ):
         self.port = port
         self.metric = metric
@@ -56,11 +51,10 @@ class RouteEntry:
         current_time = datetime.now()
         self.timeout_time = current_time + timedelta(seconds=timeout_time)
         self.learned_from = learned_from
-        self.output_socket = output_socket
 
-    def update_timeout_time(self,
-                            timeout_time: int,
-                            initial_time=datetime.now()) -> datetime:
+    def update_timeout_time(
+        self, timeout_time: int, initial_time=datetime.now()
+    ) -> datetime:
         """
         Updates the timeout time, at which point this `RouteEntry` enter the
         deletion process.
@@ -78,9 +72,9 @@ class RouteEntry:
         self.timeout_time = initial_time + timedelta(seconds=timeout_time)
         return initial_time
 
-    def set_garbage_collection_time(self,
-                                    gc_delta: int,
-                                    initial_time=datetime.now()) -> datetime:
+    def set_garbage_collection_time(
+        self, gc_delta: int, initial_time=datetime.now()
+    ) -> datetime:
         """
         Updates the garbage collection time, at which point this `RouteEntry`
         will be removed from the table.
@@ -96,8 +90,3 @@ class RouteEntry:
         """
         self.gc_time = initial_time + timedelta(seconds=gc_delta)
         return initial_time
-
-    def update_route(self, timeout_time: int):
-        # TODO
-        self.update_timeout_time(timeout_time)
-        self.gc_time = None

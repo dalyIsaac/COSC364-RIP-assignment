@@ -1,9 +1,8 @@
-from collections import namedtuple
 from socket import AF_INET
-from typing import List
-from validate_data import INFINITY
+from typing import List, NamedTuple
 
 from routingtable import RoutingTable
+from validate_data import INFINITY
 
 MAX_ENTRIES = 25
 ENTRY_LEN = 20
@@ -11,11 +10,18 @@ HEADER_LEN = 4
 RIP_PACKET_COMMAND = 2
 RIP_VERSION_NUMBER = 2
 
-ResponseEntry = namedtuple("ResponseEntry",
-                           ["afi", "target_router_id", "metric"])
 
-ResponsePacket = namedtuple(
-    "ResponsePacket", ["command", "version", "sender_router_id", "entries"])
+class ResponseEntry(NamedTuple):
+    afi: int
+    router_id: int
+    metric: int
+
+
+class ResponsePacket(NamedTuple):
+    command: int
+    version: int
+    sender_router_id: int
+    entries: List[ResponseEntry]
 
 
 def get_next_packet_entries(table: RoutingTable, router_id: int):
@@ -32,8 +38,9 @@ def get_next_packet_entries(table: RoutingTable, router_id: int):
     entries = []
     for destination_router_id in table:
         route = table[destination_router_id]
-        if route.learned_from != router_id and (route.metric < INFINITY
-                                                or route.flag):
+        if route.learned_from != router_id and (
+            route.metric < INFINITY or route.flag
+        ):
             entries.append((destination_router_id, route))
             if len(entries) == MAX_ENTRIES:
                 yield entries
@@ -65,11 +72,13 @@ def _construct_packet(table: RoutingTable, entries) -> bytearray:
     current_index = 4
 
     for (destination_router_id, entry) in entries:
-        packet[current_index:current_index + 2] = AF_INET.to_bytes(2, "big")
-        packet[current_index + 4:current_index +
-               8] = destination_router_id.to_bytes(4, "big")
-        packet[current_index + 16:current_index +
-               ENTRY_LEN] = entry.metric.to_bytes(4, "big")
+        packet[current_index : current_index + 2] = AF_INET.to_bytes(2, "big")
+        packet[
+            current_index + 4 : current_index + 8
+        ] = destination_router_id.to_bytes(4, "big")
+        packet[
+            current_index + 16 : current_index + ENTRY_LEN
+        ] = entry.metric.to_bytes(4, "big")
         current_index += ENTRY_LEN
 
     return packet
@@ -89,12 +98,14 @@ def _read_packet_entry(packet: bytearray, start_index: int) -> ResponseEntry:
     """
     Returns the properties of a single RIP entry inside a RIP response packet.
     """
-    afi = int.from_bytes(packet[start_index:start_index + 2], byteorder="big")
-    target_router_id = int.from_bytes(
-        packet[start_index + 4:start_index + 8], byteorder="big")
+    afi = int.from_bytes(packet[start_index : start_index + 2], byteorder="big")
+    router_id = int.from_bytes(
+        packet[start_index + 4 : start_index + 8], byteorder="big"
+    )
     metric = int.from_bytes(
-        packet[start_index + 16:start_index + 20], byteorder="big")
-    return ResponseEntry(afi, target_router_id, metric)
+        packet[start_index + 16 : start_index + 20], byteorder="big"
+    )
+    return ResponseEntry(afi, router_id, metric)
 
 
 def read_packet(packet: bytearray) -> ResponsePacket:
@@ -114,3 +125,30 @@ def read_packet(packet: bytearray) -> ResponsePacket:
             return ResponsePacket(command, version, sender_router_id, entries)
         start_index = end_index
     return ResponsePacket(command, version, sender_router_id, entries)
+
+
+def validate_packet(table: RoutingTable, packet: ResponsePacket):
+    """
+    Returns a Boolean indicating whether the given packet is valid.
+    """
+    # Checks whether the router_id is from a valid neighbour
+    if packet.sender_router_id not in table.neighbours():
+        print(
+            f"Packet received from router_id {table.sender_router_id}, which "
+            + "is not a neighbour of this router."
+        )
+        print(
+            f"Current neighbours of this router {table.router_id} are "
+            + "{[i for i in table.neighbours()]}."
+        )
+        return False
+
+    # Checks whether the router_id belongs to the router itself
+    if table.router_id == packet.sender_router_id:
+        print(
+            f"The packet's router_id of {packet.sender_router_id} illegally "
+            + "matches the router_id of this router."
+        )
+        return False
+
+    return True

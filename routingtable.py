@@ -1,8 +1,9 @@
-from typing import Dict, Iterator, Optional
-from routeentry import RouteEntry
 from datetime import datetime, timedelta
 from random import randint
 from time import sleep
+from typing import Dict, Iterator, Optional
+
+from routeentry import RouteEntry
 
 
 class RoutingTable:
@@ -66,6 +67,24 @@ class RoutingTable:
         """
         return self.table[index]
 
+    def __contains__(self, router_id: int) -> bool:
+        """
+        Checks to see if the given `router_id` is inside the routing table.
+        """
+        return router_id in self.table
+
+    def __delitem__(self, router_id: int):
+        """
+        Removes the `router_id` and associated `RouteEntry` from the table.
+        """
+        self.remove_route(router_id)
+
+    def neighbours(self):
+        """
+        Returns the `router_id`s of the neighbouring routers.
+        """
+        return self.table.keys()
+
     def add_route(self, router_id: int, route: RouteEntry) -> None:
         """
         Adds the `RouteEntry`  to the table, and associates it with the given
@@ -73,7 +92,9 @@ class RoutingTable:
         self.table[router_id] = route
 
     def remove_route(self, router_id: int) -> None:
-        """Removes the `router_id` and RouteEntry` from the table."""
+        """
+        Removes the `router_id` and associated `RouteEntry` from the table.
+        """
         del self.table[router_id]
 
     def update_sched_update_time(self, initial_time=datetime.now()) -> datetime:
