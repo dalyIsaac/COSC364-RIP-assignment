@@ -29,6 +29,9 @@
 # v04: 18 April 2019
 # Fixed some linting errors
 #
+# v05: 19 April 2019
+# Changed id = int(cost) to id = int(id)
+#
 ################################################################################
 
 
@@ -73,7 +76,7 @@ def read_config(filename):
                 (port, cost, id) = part.split("-")
                 port = int(port)
                 cost = int(cost)
-                id = int(cost)
+                id = int(id)  # fixed error here
                 output_ports.append((port, cost, id))
         elif option == "timers":
             if timers is not None:
