@@ -151,4 +151,5 @@ def validate_packet(table: RoutingTable, packet: ResponsePacket):
         )
         return False
 
+    print("The received packet is valid.")
     return True
