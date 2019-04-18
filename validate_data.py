@@ -31,6 +31,16 @@
 #   Moved the output-ports checking (port, metric, id)
 #   into signle for loop
 #
+# Version 06: 19 April 2019
+#   Removed the metric set (since we can have the same
+#   metric more than once) and checkng of it. All we
+#   need to check is the metric range is 1-15.
+#   Fixed issue with timer checking.
+#   Move the port reuse error code check to after the
+#   metric and id error code checks. (When break out of
+#   the for loop, the sets do not match)
+#   Need to check for empty lists being passed in
+#
 #########################################################
 
 # import sys
@@ -46,7 +56,7 @@ MAX_PORT = 64000
 
 # Metric limits
 MIN_METRIC = 1
-MAX_METRIC = 15
+MAX_METRIC = 15  # can we have 16 in the config file?
 INFINITY = 16
 
 # Timer ratios
@@ -56,9 +66,14 @@ PERIODIC_GARBAGE_RATIO = 4
 
 def validate_data(router_id, input_ports, output_ports, timers):
     """
-    error in router id (range)
-    error in input ports (range and reuse)
-    error in output ports (range and reuse)
+    good data
+    error in router id (range) done
+    error in input ports (range and reuse) done
+    error in output ports (range and reuse (within output ports) ) done
+    error in output ports (range and reuse (compared with input ports) ) done
+    error in output ports (metric / cost) done
+    error in output ports (destination ID) done
+    error in timers done
     >>> validate_data( 1, [3001,4001,5001], [(5003,3,5), (9003,3,9), (1303,3,13)], [10,60,40] )
     0
     >>> validate_data( (0), [3001,4001,5001], [(5003,3,5), (9003,3,9), (1303,3,13)], [10,60,40] )
@@ -76,6 +91,46 @@ def validate_data(router_id, input_ports, output_ports, timers):
     >>> validate_data( (1), [3001,4001,3001], [(5003,3,5), (9003,3,9), (1303,3,13)], [10,60,40] )
     Input Ports Configuration Error
     1
+    >>> validate_data( 1, [3001,4001,5001], [(1022,3,5), (9003,3,9), (1303,3,13)], [10,60,40] )
+    Output Ports Configuration Error: Port number re-use
+    1
+    >>> validate_data( 1, [3001,4001,5001], [(5003,3,5), (64001,3,9), (1303,3,13)], [10,60,40] )
+    Output Ports Configuration Error: Port number re-use
+    1
+    >>> validate_data( 1, [3001,4001,5001], [(5003,3,5), (1303,3,9), (1303,3,13)], [10,60,40] )
+    Output Ports Configuration Error: Port number re-use
+    1
+    >>> validate_data( 1, [3001,4001,5001], [(5003,3,5), (9003,3,9), (3001,3,13)], [10,60,40] )
+    Output Ports Configuration Error: Port number re-use
+    1
+    >>> validate_data( 1, [3001,4001,5001], [(5003,0,5), (9003,15,9), (1303,3,13)], [10,60,40] )
+    Output Ports Configuration Error: Cost / Metric
+    1
+    >>> validate_data( 1, [3001,4001,5001], [(5003,1,5), (9003,16,9), (1303,3,13)], [10,60,40] )
+    Output Ports Configuration Error: Cost / Metric
+    1
+    >>> validate_data( 1, [3001,4001,5001], [(5003,1,5), (9003,15,9), (1303,3,13)], [10,60,40] )
+    0
+    >>> validate_data( 1, [3001,4001,5001], [(5003,3,0), (9003,3,9), (1303,3,13)], [10,60,40] )
+    Output Ports Configuration Error: ID
+    1
+    >>> validate_data( 1, [3001,4001,5001], [(5003,3,1), (9003,3,64001), (1303,3,13)], [10,60,40] )
+    Output Ports Configuration Error: ID
+    1
+    >>> validate_data( 1, [3001,4001,5001], [(5003,3,1), (9003,3,64000), (1303,3,13)], [10,60,40] )
+    0
+    >>> validate_data( 1, [3001,4001,5001], [(5003,3,5), (9003,3,9), (1303,3,13)], [10,50,40] )
+    Timers Configuration Error
+    1
+    >>> validate_data( 1, [3001,4001,5001], [(5003,3,5), (9003,3,9), (1303,3,13)], [10,60,30] )
+    Timers Configuration Error
+    1
+    >>> validate_data( 1, [3001,4001,5001], [(5003,3,5), (9003,3,9), (1303,3,13)], [10,35,40] )
+    Timers Configuration Error
+    1
+    >>> validate_data( 1, [3001,4001,5001], [(5003,3,5), (9003,3,9), (1303,3,13)], [20,10,42] )
+    Timers Configuration Error
+    1
     """
 
     id_error = 0
@@ -86,6 +141,10 @@ def validate_data(router_id, input_ports, output_ports, timers):
 
     #
     # Check Router ID
+    """ if router_id is None:
+        id_error = 1
+        else
+    """
     if (router_id < MIN_ID) or (router_id > MAX_ID):
         id_error = 1
 
@@ -95,6 +154,10 @@ def validate_data(router_id, input_ports, output_ports, timers):
 
     #
     # Check input ports
+    """ if input_ports is None:
+        input_port_error = 1
+        else
+    """
     temp_input_set = set()
     for a_port in input_ports:
         if (a_port < MIN_PORT) or (a_port > MAX_PORT):
@@ -113,8 +176,12 @@ def validate_data(router_id, input_ports, output_ports, timers):
 
     #
     # Check output ports
-    temp_output_set = set()
-    temp_metric_set = set()
+    """ if output_ports is None:
+        output_port_error = 1
+        else
+    """
+    temp_output_port_set = set()
+    # temp_metric_set = set()
     temp_id_set = set()
 
     # an_item is (output port,metric,id)
@@ -124,13 +191,13 @@ def validate_data(router_id, input_ports, output_ports, timers):
         if (an_item[0] < MIN_PORT) or (an_item[0] > MAX_PORT):
             output_port_error = 1
             break
-        temp_output_set.add(an_item[0])
+        temp_output_port_set.add(an_item[0])
 
         # check metric
         if (an_item[1] < MIN_METRIC) or (an_item[1] > MAX_METRIC):
             metric_error = 1
             break
-        temp_metric_set.add(an_item[1])
+        # temp_metric_set.add(an_item[1])
 
         # check id
         if (an_item[2] < MIN_ID) or (an_item[2] > MAX_ID):
@@ -138,43 +205,49 @@ def validate_data(router_id, input_ports, output_ports, timers):
             break
         temp_id_set.add(an_item[2])
 
-    # if length of the set of ports is not same as the length of output-puts, error
-    if len(temp_output_set) != len(output_ports):
+    # if length of set of ports not same as the length of output-ports, hv error
+    if len(temp_output_port_set) != len(output_ports):
         output_port_error = 1
 
     # check the set of output ports with set of input ports, if they
     # are not disjoint (i.e. element(s) in common) we have error
-    if (temp_output_set.isdisjoint(temp_input_set)) is False:
+    if (temp_output_port_set.isdisjoint(temp_input_set)) is False:
         output_port_error = 1
 
-    if output_port_error == 1:
-        print("Output Ports: Port re-use Configuration Error")
-        return 1
-
-    if len(temp_metric_set) != len(output_ports(1)):
-        metric_error = 1
-
     if metric_error == 1:
-        print("Output Ports: Cost / Metric Configuration Error")
+        print("Output Ports Configuration Error: Cost / Metric")
         return 1
 
-    if len(temp_metric_set) != len(output_ports(2)):
-        id_error = 1
+    # we might need this i.e. check if a cost / metric is missing?
+    # if len(temp_metric_set) != len(output_ports(2)):
+    # id_error = 1
 
+    # do we need a check for missing ID?
     if id_error == 1:
-        print("Output Ports: ID Configuration Error")
+        print("Output Ports Configuration Error: ID")
+        return 1
+
+    if output_port_error == 1:
+        print("Output Ports Configuration Error: Port number re-use")
         return 1
 
     #
     # Check Timers
-    if (timers(1) / timers(0)) != PERIODIC_DEAD_RATIO:
+    """ if timers is None
         timers_error = 1
-    if (timers(2) / timers(0)) != PERIODIC_GARBAGE_RATIO:
+        else
+    """
+    if (timers[1] / timers[0]) != PERIODIC_DEAD_RATIO:
+        timers_error = 1
+    if (timers[2] / timers[0]) != PERIODIC_GARBAGE_RATIO:
         timers_error = 1
 
     if timers_error == 1:
         print("Timers Configuration Error")
         return 1
+
+    # All good, yay! return a zero
+    return 0
 
 
 if __name__ == "__main__":
@@ -182,17 +255,3 @@ if __name__ == "__main__":
     import doctest
 
     doctest.testmod()
-
-"""
-    >>> validate_data( (1), (3001,4001,5001), (5003,3,5, 9003,3,9, 1303,3,13), (10,60,40) )
-    0
-    >>> validate_data( (1), (3001,4001,5001), (5003,3,5, 9003,3,9, 1303,3,13), (10,20,40) )
-    Timers Configuration Error
-    1
-    >>> validate_data( (1), (3001,4001,5001), (5003,3,5, 9003,3,9, 1303,3,13), (10,60,20) )
-    Timers Configuration Error
-    1
-    >>> validate_data( (1), (3001,4001,5001), (5003,3,5, 9003,3,9, 1303,3,13), (20,60,40) )
-    Timers Configuration Error
-    1
-    """
