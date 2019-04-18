@@ -79,6 +79,69 @@ class RoutingTable:
         """
         self.remove_route(router_id)
 
+    def _str_headers(self, router_id: int) -> str:
+        output = (
+            "| port | metric | next_address | learned_from | flag   | "
+            + "timeout_time".ljust(26)
+            + " | "
+            + "gc_time".ljust(26)
+            + " |\n"
+        )
+        delim = output.split("|")
+        for d in delim[1:-1]:
+            output += "|" + "=" * len(d)
+        output += "|\n"
+        return output
+
+    def _str_entry(self, router_id: int) -> str:
+        """
+        Returns the string representation of a `RouteEntry` inside the table.
+        """
+        e = self.table[router_id]
+        output = (
+            "| "
+            + str(e.port).ljust(4)
+            + " | "
+            + str(e.metric).ljust(6)
+            + " | "
+            + str(e.next_address).ljust(12)
+            + " | "
+            + str(e.learned_from).ljust(12)
+            + " | "
+            + str(e.flag).ljust(6)
+            + " | "
+        )
+
+        try:
+            output += str(e.timeout_time).ljust(26)
+        except AttributeError:
+            output += str(None).ljust(26)
+        output += " | "
+
+        try:
+            output += str(e.gc_time).ljust(26)
+        except AttributeError:
+            output += str(None).ljust(26)
+        output += " |\n"
+
+        return output
+
+    def __str__(self):
+        """Returns a string representation of the routing table."""
+
+        output = ""
+
+        router_id = None
+        for router_id in self.table:
+            output += self._str_entry(router_id)
+
+        if output:
+            output = self._str_headers(router_id) + output
+        else:
+            output = "Empty table"
+
+        return output
+
     def neighbours(self):
         """
         Returns the `router_id`s of the neighbouring routers.
