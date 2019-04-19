@@ -67,6 +67,7 @@ def adopt_route(
     table_entry.metric = new_metric
     table_entry.next_address = learned_from
     table_entry.flag = True
+    table.learned_from = learned_from
     send_responses(table, sock)
     if new_metric == INFINITY:
         pool.submit(deletion_process, (table))
@@ -110,7 +111,7 @@ def update_table(
         if time_diff.seconds >= half_time:
             adopt_route(table, table_entry, new_metric, learned_from, sock)
     else:
-        # Drop all the remaining packets
+        # The packet_entry is no better than the current route
         pass
 
 

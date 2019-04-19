@@ -119,7 +119,7 @@ def read_packet(packet: bytearray) -> ResponsePacket:
 
     while start_index < len(packet):
         end_index = start_index + ENTRY_LEN
-        if end_index <= len(packet):
+        if end_index <= len(packet) and len(entries) < MAX_ENTRIES:
             entries.append(_read_packet_entry(packet, start_index))
         else:
             return ResponsePacket(command, version, sender_router_id, entries)
