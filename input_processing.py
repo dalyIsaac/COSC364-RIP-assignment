@@ -147,6 +147,7 @@ def get_packets(
         _, port = sock.getsockname()
         packet, client_address = sock.recvfrom(1024)
         packets.append((read_packet(packet), port, sock))
+        print(f"Received packet from port {port}.")
 
     return packets
 
