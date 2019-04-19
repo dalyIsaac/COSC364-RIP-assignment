@@ -158,9 +158,15 @@ class RoutingTable:
         """
         Removes the `router_id` and associated `RouteEntry` from the table.
         """
+        # Creates a shallow copy of the dictionary. This prevents Python
+        # complaining if there's a deletion while something is iterating over
+        # the table.
+        self.table = dict(self.table)
         del self.table[router_id]
 
-    def update_sched_update_time(self, initial_time=datetime.now()) -> datetime:
+    def update_sched_update_time(
+        self, initial_time: Optional[datetime] = None
+    ) -> datetime:
         """
         Updates the scheduled time at which an update will be sent out for this
         `RouteEntry`. Returns the `initial_time`, which is the what
@@ -171,12 +177,16 @@ class RoutingTable:
         initial_time -- The initial time, as specified. Defaults to
         `datetime.now()`
         """
+        if initial_time is None:
+            initial_time = datetime.now()
         self.sched_update_time = initial_time + timedelta(
             seconds=self.update_delta + randint(-5, 5)
         )
         return initial_time
 
-    def set_triggered_update_time(self, initial_time=datetime.now()) -> int:
+    def set_triggered_update_time(
+        self, initial_time: Optional[datetime] = None
+    ) -> int:
         """
         Updates the triggered time at which an update will be sent out for
         this `RouteEntry`.
@@ -194,6 +204,8 @@ class RoutingTable:
         initial_time -- The initial time, as specified. Defaults to
         `datetime.now()`.
         """
+        if initial_time is None:
+            initial_time = datetime.now()
         diff = randint(1, 5)
         self.triggered_update_time = initial_time + timedelta(seconds=diff)
         if self.triggered_update_time >= self.sched_update_time:

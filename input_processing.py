@@ -70,7 +70,7 @@ def adopt_route(
     table.learned_from = learned_from
     send_responses(table, sock)
     if new_metric == INFINITY:
-        pool.submit(deletion_process, (table))
+        pool.submit(deletion_process, table)
     else:
         table_entry.update_timeout_time(table.timeout_delta)
 
@@ -96,7 +96,7 @@ def update_table(
     elif new_metric == INFINITY:
         # nothing happens if the entry's existing metric is `INFINITY`
         if table_entry.metric != INFINITY:
-            pool.submit(deletion_process, (table))
+            pool.submit(deletion_process, table)
     elif (
         new_metric == table_entry.metric
         and learned_from != table_entry.next_address

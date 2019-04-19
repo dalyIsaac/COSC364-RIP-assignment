@@ -7,7 +7,7 @@ from routeentry import RouteEntry
 from routingtable import RoutingTable
 from validate_data import INFINITY
 
-pool = ThreadPoolExecutor(3)
+pool = ThreadPoolExecutor()
 
 
 def send_response(
@@ -19,10 +19,10 @@ def send_response(
     # Ignore the pyright error - it fails to resolve bytearray and bytes, when
     # it really should.
     sock.sendto(packet, ("localhost", table[router_id].port))
-    print(str(table))
 
 
 def _send_responses(table: RoutingTable, sock: socket, clear_flags=False):
+    print(str(table))
     for router_id in table:
         packets = construct_packets(table, router_id)
         for packet in packets:
@@ -39,7 +39,7 @@ def send_responses(table: RoutingTable, sock: socket, clear_flags=False):
     Sends unsolicited `Response` messages containing the entire routing
     table to every neighbouring router.
     """
-    pool.submit(_send_responses, (table, sock, clear_flags))
+    pool.submit(_send_responses, table, sock, clear_flags)
 
 
 def timeout_processing(table: RoutingTable, entry: RouteEntry, sock: socket):
@@ -65,12 +65,7 @@ def gc_processing(
 
     if router_id in table and entry.gc_time and entry.gc_time >= now:
         ids_to_delete.append(router_id)
-
-    for current_id in ids_to_delete:
-        try:
-            del table[router_id]
-        except KeyError:
-            print(f"router-id {router_id} wasn't in the table at this time.")
+        del table[router_id]
 
 
 def deletion_process(table: RoutingTable, sock: socket):
@@ -81,7 +76,7 @@ def deletion_process(table: RoutingTable, sock: socket):
     now = datetime.now()  # Only calling it once minimises system time
     for router_id in table:
         entry: RouteEntry = table[router_id]
-        if entry.timeout_time <= now:
-            pool.submit(timeout_processing, (entry, sock))
-        elif hasattr(entry, "gc_time"):
+        if hasattr(entry, "gc_time"):
             gc_processing(table, router_id, entry, now)
+        elif entry.timeout_time <= now:
+            pool.submit(timeout_processing, table, entry, sock)
