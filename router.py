@@ -23,7 +23,7 @@ def daemon(table: RoutingTable, sockets: List[socket]):
     output_sock: socket = sockets[0]
 
     while True:
-        while table.sched_update_time < datetime.now():
+        while table.sched_update_time > datetime.now():
             input_processing(table, sockets)
 
         send_responses(table, output_sock)
@@ -60,6 +60,8 @@ def main():
 
         if result is None:
             return
+        else:
+            sockets = result
 
         table = create_table(router_id, sockets, output_ports, timers)
         daemon(table, sockets)

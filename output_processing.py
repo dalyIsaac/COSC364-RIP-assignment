@@ -7,7 +7,7 @@ from routeentry import RouteEntry
 from routingtable import RoutingTable
 from validate_data import INFINITY
 
-pool = ThreadPoolExecutor()
+pool = ThreadPoolExecutor(3)
 
 
 def send_response(
@@ -39,7 +39,7 @@ def send_responses(table: RoutingTable, sock: socket, clear_flags=False):
     Sends unsolicited `Response` messages containing the entire routing
     table to every neighbouring router.
     """
-    pool.submit(_send_responses, (table, clear_flags))
+    pool.submit(_send_responses, (table, sock, clear_flags))
 
 
 def timeout_processing(table: RoutingTable, entry: RouteEntry, sock: socket):
@@ -83,5 +83,5 @@ def deletion_process(table: RoutingTable, sock: socket):
         entry: RouteEntry = table[router_id]
         if entry.timeout_time <= now:
             pool.submit(timeout_processing, (entry, sock))
-        elif entry.gc_time is not None:
+        elif hasattr(entry, "gc_time"):
             gc_processing(table, router_id, entry, now)
