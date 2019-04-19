@@ -6,10 +6,10 @@ files will need to be set up to achvie the test.
 Notes
 Using terminology "cost", noting that cost and metric are interchangable.
 Costs are even numbers.
-Router ID's are increasing primes.
+Router ID's are increasing primes, per test.
 Port numbers are a combination of this router ID and destination router ID. 
-Anything that has a non-prime port number combination is to provide some data
-into the route table.
+Anything that has a non-prime port number combination is to provide some additional 
+starting data into the route table.
 
 Test Case 1
 Start a single router instance with config file R2
