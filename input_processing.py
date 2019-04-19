@@ -33,7 +33,6 @@ def validate_entry(entry: ResponseEntry) -> bool:
         )
         return False
 
-    print(f"Entry {entry} is valid.")
     return True
 
 

@@ -151,5 +151,17 @@ def validate_packet(table: RoutingTable, packet: ResponsePacket):
         )
         return False
 
-    print("The received packet is valid.")
+    # Checks that the command is valid
+    if packet.command != 2:
+        print(
+            f"The packet had a command value of {packet.command}, instead of 2."
+        )
+        return False
+
+    if packet.version != 2:
+        print(
+            f"The packet had a version value of {packet.version}, instead of 2."
+        )
+        return False
+
     return True
