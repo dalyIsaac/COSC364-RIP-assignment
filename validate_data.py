@@ -55,9 +55,9 @@ MIN_PORT = 1024
 MAX_PORT = 64000
 
 # Metric limits
-MIN_METRIC = 1
-MAX_METRIC = 15  # can we have 16 in the config file?
 INFINITY = 16
+MIN_METRIC = 1
+MAX_METRIC = INFINITY
 
 # Timer ratios
 PERIODIC_DEAD_RATIO = 6
@@ -71,8 +71,8 @@ def validate_data(router_id, input_ports, output_ports, timers):
     error in input ports (range and reuse) done
     error in output ports (range and reuse (within output ports) ) done
     error in output ports (range and reuse (compared with input ports) ) done
-    error in output ports (metric / cost) done
-    error in output ports (destination ID) done
+    error in output ports metric / cost range and missing values
+    error in output ports destination ID range and missing values done
     error in timers done
     >>> validate_data( 1, [3001,4001,5001], [(5003,3,5), (9003,3,9), (1303,3,13)], [10,60,40] )
     0
@@ -107,6 +107,8 @@ def validate_data(router_id, input_ports, output_ports, timers):
     Output Ports Configuration Error: Cost / Metric
     1
     >>> validate_data( 1, [3001,4001,5001], [(5003,1,5), (9003,16,9), (1303,3,13)], [10,60,40] )
+    0
+    >>> validate_data( 1, [3001,4001,5001], [(5003,1,5), (9003,17,9), (1303,3,13)], [10,60,40] )
     Output Ports Configuration Error: Cost / Metric
     1
     >>> validate_data( 1, [3001,4001,5001], [(5003,1,5), (9003,15,9), (1303,3,13)], [10,60,40] )
@@ -138,32 +140,33 @@ def validate_data(router_id, input_ports, output_ports, timers):
     output_port_error = 0
     metric_error = 0
     timers_error = 0
+    # temp_metric_list = None
+    # temp_id_list = None
+    # temp_metric_list = None
 
     #
     # Check Router ID
-    """ if router_id is None:
+    if router_id is None:
         id_error = 1
-        else
-    """
-    if (router_id < MIN_ID) or (router_id > MAX_ID):
-        id_error = 1
+    else:
+        if (router_id < MIN_ID) or (router_id > MAX_ID):
+            id_error = 1
 
-    if id_error == 1:
-        print("Router ID Configuration Error")
-        return 1
+        if id_error == 1:
+            print("Router ID Configuration Error")
+            return 1
 
     #
     # Check input ports
-    """ if input_ports is None:
-        input_port_error = 1
-        else
-    """
     temp_input_set = set()
-    for a_port in input_ports:
-        if (a_port < MIN_PORT) or (a_port > MAX_PORT):
-            input_port_error = 1
-            break
-        temp_input_set.add(a_port)  # add port to a temporary list
+    if input_ports is None:
+        input_port_error = 1
+    else:
+        for a_port in input_ports:
+            if (a_port < MIN_PORT) or (a_port > MAX_PORT):
+                input_port_error = 1
+                break
+            temp_input_set.add(a_port)  # add port to a temporary list
 
     # set error error if the length of temporary list
     #   is not the same as length of original port list
@@ -176,34 +179,33 @@ def validate_data(router_id, input_ports, output_ports, timers):
 
     #
     # Check output ports
-    """ if output_ports is None:
-        output_port_error = 1
-        else
-    """
     temp_output_port_set = set()
-    # temp_metric_set = set()
     temp_id_set = set()
+    # temp_metric_set = set()
 
-    # an_item is (output port,metric,id)
-    for an_item in output_ports:
+    if output_ports is None:
+        output_port_error = 1
+    else:
+        # an_item is (output port,metric,id)
+        for an_item in output_ports:
 
-        # check port range
-        if (an_item[0] < MIN_PORT) or (an_item[0] > MAX_PORT):
-            output_port_error = 1
-            break
-        temp_output_port_set.add(an_item[0])
+            # check port range
+            if (an_item[0] < MIN_PORT) or (an_item[0] > MAX_PORT):
+                output_port_error = 1
+                break
+            temp_output_port_set.add(an_item[0])
 
-        # check metric
-        if (an_item[1] < MIN_METRIC) or (an_item[1] > MAX_METRIC):
-            metric_error = 1
-            break
-        # temp_metric_set.add(an_item[1])
+            # check metric
+            if (an_item[1] < MIN_METRIC) or (an_item[1] > MAX_METRIC):
+                metric_error = 1
+                break
+            # temp_metric_set.add(an_item[1])
 
-        # check id
-        if (an_item[2] < MIN_ID) or (an_item[2] > MAX_ID):
-            id_error = 1
-            break
-        temp_id_set.add(an_item[2])
+            # check id
+            if (an_item[2] < MIN_ID) or (an_item[2] > MAX_ID):
+                id_error = 1
+                break
+            temp_id_set.add(an_item[2])
 
     # if length of set of ports not same as the length of output-ports, hv error
     if len(temp_output_port_set) != len(output_ports):
@@ -233,14 +235,13 @@ def validate_data(router_id, input_ports, output_ports, timers):
 
     #
     # Check Timers
-    """ if timers is None
+    if len(timers) is not 3:
         timers_error = 1
-        else
-    """
-    if (timers[1] / timers[0]) != PERIODIC_DEAD_RATIO:
-        timers_error = 1
-    if (timers[2] / timers[0]) != PERIODIC_GARBAGE_RATIO:
-        timers_error = 1
+    else:
+        if (timers[1] / timers[0]) != PERIODIC_DEAD_RATIO:
+            timers_error = 1
+        if (timers[2] / timers[0]) != PERIODIC_GARBAGE_RATIO:
+            timers_error = 1
 
     if timers_error == 1:
         print("Timers Configuration Error")
