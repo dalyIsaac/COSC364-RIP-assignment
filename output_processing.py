@@ -19,6 +19,7 @@ def send_response(
     # Ignore the pyright error - it fails to resolve bytearray and bytes, when
     # it really should.
     sock.sendto(packet, ("localhost", table[router_id].port))
+    print(str(table))
 
 
 def _send_responses(table: RoutingTable, sock: socket, clear_flags=False):

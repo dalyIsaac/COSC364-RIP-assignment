@@ -14,12 +14,11 @@
 # Version 03: 18 April 2019
 #   Only needs to work with list of input sockets
 #
+# Version 03a: 19 April 2019
+#   Removed unnecessary imports
 #########################################################
 
-import socket
 from port_opener import port_opener
-
-# import sys
 
 
 def port_closer(socket_list):
