@@ -29,13 +29,14 @@
 #########################################################
 
 import socket
-
-# import sys
+from port_closer import port_closer
 
 
 def port_opener(input_ports):
 
     socket_list = []
+
+    a_port = None
 
     try:
         for a_port in input_ports:
@@ -46,12 +47,14 @@ def port_opener(input_ports):
 
             print("Opened socket / port, ", new_socket, "/", a_port)
 
-            socket_list.append((new_socket))
+            socket_list.append(new_socket)
 
         return socket_list
 
-    except (Exception):
-        return 1
+    except OSError:
+        print(f"The port {a_port} is already in use. Please pick another one.")
+        port_closer(socket_list)
+        return None
 
 
 if __name__ == "__main__":

@@ -18,8 +18,6 @@
 #   Removed unnecessary imports
 #########################################################
 
-from port_opener import port_opener
-
 
 def port_closer(socket_list):
 
@@ -37,6 +35,7 @@ def port_closer(socket_list):
 
 
 if __name__ == "__main__":
+    from port_opener import port_opener
 
     # open input ports
     input_ports = (3001, 4001, 5001)
