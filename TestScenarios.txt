@@ -1,0 +1,87 @@
+
+Using the terminology "cost" noting that cost and metric are interchangable.
+
+
+Test Case 1
+Start a single router instance with config file R2
+
+Expected behaviour:
+cfg file is parsed, validater returns True, router loads config into table
+routing table is printed to screen as per the hello timer interval
+notifications shown on screen that packets are being sent to the router id and port
+notifications shown on screen that timer events are occuring
+routing table should end up empty as we are not receving any packets (route info)
+
+
+Test Case 2
+Start two router instances with config files R1 and R3
+R1 is directly connected to R3, so are peered
+
+Expected behaviour:
+cfg file is parsed, validater returns True, router loads config into table
+routing table is printed to screen as per the hello timer interval
+notifications shown on screen that packets are being sent to the router id and port
+notifications shown on screen that packets are being received router and port
+notifications shown on screen that timer events are occuring
+routing table should end up with a single route to the other router i.e.
+R1 has one route to R3 and R3 has one router to R1
+
+
+Test Case 3
+Start three router instances with config files R5, R7 and R11
+R5 has direct connection to R7 and direct connection to R11.
+R11 has direct connection to R7 and direct connection to R5.
+R7 has direct connections to R11 and R5.
+So a simple network ring of three routers.
+All link costs are equal.
+
+Expected behaviour:
+cfg file is parsed, validater returns True, router loads config into table
+routing table is printed to screen as per the hello timer interval
+notifications shown on screen that packets are being sent to the two router id's and ports
+notifications shown on screen that packets are being received from two router id's and ports
+notifications shown on screen that timer events are occuring
+routing table should converge to:
+R5 has a route to R7 and a route to R11. R7 has a route to R5 and a route to R11.
+R11 has a route to R5 and a route to R7
+
+
+Test Case 4
+Start three router instances with config files R13, R17 and R19
+R13 has direct connection to R17 and direct connection to R19.
+R17 has direct connection to R19 and direct connection to R13.
+R19 has direct connection to R13 and direct connection to R19.
+Simple network ring of three routers, but with different costs.
+Link cost direct between R13 and R17 is greater than the sum 
+    of the costs between R13 and R17 via R19 i.e. via R19 has lower cost. 
+
+Expected behaviour:
+cfg file is parsed, validater returns True, router loads config into table
+routing table is printed to screen as per the hello timer interval
+notifications shown on screen that packets are being sent to the two router id's and ports
+notifications shown on screen that packets are being received from two router id's and ports
+notifications shown on screen that timer events are occuring
+routing table should end up with:
+R13 has a route to R17 via R19. R13 also has a route to R19.
+R17 has a route to R19. R17 also has a route to R13 via R19.
+R19 has a route to R13 and a route to R17.
+
+
+Test Case 5
+Start three router instances with config files R23, R29 and R31
+R23 has direct connection to R29 only.
+R29 has direct connection to R23 and direct connection to R31.
+R31 has direct connecion to R29 only.
+Star network with R29 as the central router.
+
+Expected behaviour:
+cfg file is parsed, validater returns True, router loads config into table
+routing table is printed to screen as per the hello timer interval
+notifications shown on screen that packets are being sent to the connected router id and port
+notifications shown on screen that packets are being received from connected router id and port
+notifications shown on screen that timer events are occuring
+routing table should end up with:
+R23 has direct connection to R29. R23 has connection to R31 via R29.
+R29 has direct connections to R29 and R31.
+R31 has direct connection to R29. R31 has connection to R23 via R29.
+
