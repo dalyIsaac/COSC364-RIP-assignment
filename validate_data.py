@@ -41,6 +41,9 @@
 #   the for loop, the sets do not match)
 #   Need to check for empty lists being passed in
 #
+# Version 07: 19 April 2019:
+#   Switched to returning Boolean values
+#
 #########################################################
 
 # import sys
@@ -150,7 +153,7 @@ def validate_data(router_id, input_ports, output_ports, timers):
 
     if id_error == 1:
         print("Router ID Configuration Error")
-        return 1
+        return False
 
     #
     # Check input ports
@@ -172,7 +175,7 @@ def validate_data(router_id, input_ports, output_ports, timers):
 
     if input_port_error == 1:
         print("Input Ports Configuration Error")
-        return 1
+        return False
 
     #
     # Check output ports
@@ -216,7 +219,7 @@ def validate_data(router_id, input_ports, output_ports, timers):
 
     if metric_error == 1:
         print("Output Ports Configuration Error: Cost / Metric")
-        return 1
+        return False
 
     # we might need this i.e. check if a cost / metric is missing?
     # if len(temp_metric_set) != len(output_ports(2)):
@@ -225,11 +228,11 @@ def validate_data(router_id, input_ports, output_ports, timers):
     # do we need a check for missing ID?
     if id_error == 1:
         print("Output Ports Configuration Error: ID")
-        return 1
+        return False
 
     if output_port_error == 1:
         print("Output Ports Configuration Error: Port number re-use")
-        return 1
+        return False
 
     #
     # Check Timers
@@ -244,10 +247,10 @@ def validate_data(router_id, input_ports, output_ports, timers):
 
     if timers_error == 1:
         print("Timers Configuration Error")
-        return 1
+        return False
 
     # All good, yay! return a zero
-    return 0
+    return True
 
 
 if __name__ == "__main__":
