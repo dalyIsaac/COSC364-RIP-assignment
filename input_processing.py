@@ -58,7 +58,16 @@ def add_route(
     entry.gc_time = None
     entry.flag = True
     table.add_route(packet_entry.router_id, entry)
-    send_responses(table, sock)
+
+    # NOTE: As per the assignment spec, "implement triggered updates when
+    # routes become invalid  (i.e. when a router sets the routes metric to
+    # 16 <INFINITY> for whatever reason, compare end of page 24 and
+    # beginning of 25 in [1]), not for other metric updates or new routes".
+    # Thus, the following line is commented out, and the success lines added.
+    # send_responses(table, sock)
+
+    if entry.metric == INFINITY:
+        send_responses(table, sock)
 
 
 def adopt_route(
@@ -76,8 +85,19 @@ def adopt_route(
     table_entry.next_address = learned_from
     table_entry.flag = True
     table.learned_from = learned_from
-    send_responses(table, sock)
+
+    # NOTE: As per the assignment spec, "implement triggered updates when
+    # routes become invalid  (i.e. when a router sets the routes metric to
+    # 16 <INFINITY> for whatever reason, compare end of page 24 and
+    # beginning of 25 in [1]), not for other metric updates or new routes".
+    # Thus, the following line is commented out.
+    # send_responses(table, sock)
+
     if new_metric == INFINITY:
+        # NOTE: The following line was added, so that only updates to INFINITY
+        # cause triggered updates.
+        send_responses(table, sock)
+
         pool.submit(deletion_process, table)
     else:
         table_entry.update_timeout_time(table.timeout_delta)
