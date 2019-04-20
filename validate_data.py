@@ -44,6 +44,8 @@
 # Version 07: 19 April 2019:
 #   Switched to returning Boolean values
 #
+# Version 08: 20 April 2019:
+#   Moved doctests to their own unit test module
 #########################################################
 
 # import sys
@@ -68,76 +70,6 @@ PERIODIC_GARBAGE_RATIO = 4
 
 
 def validate_data(router_id, input_ports, output_ports, timers):
-    """
-    good data
-    error in router id (range) done
-    error in input ports (range and reuse) done
-    error in output ports (range and reuse (within output ports) ) done
-    error in output ports (range and reuse (compared with input ports) ) done
-    error in output ports metric / cost range and missing values
-    error in output ports destination ID range and missing values done
-    error in timers done
-    >>> validate_data( 1, [3001,4001,5001], [(5003,3,5), (9003,3,9), (1303,3,13)], [10,60,40] )
-    0
-    >>> validate_data( (0), [3001,4001,5001], [(5003,3,5), (9003,3,9), (1303,3,13)], [10,60,40] )
-    Router ID Configuration Error
-    1
-    >>> validate_data( (64001), [3001,4001,5001], [(5003,3,5), (9003,3,9), (1303,3,13)], [10,60,40] )
-    Router ID Configuration Error
-    1
-    >>> validate_data( (1), [1023,4001,5001], [(5003,3,5), (9003,3,9), (1303,3,13)], [10,60,40] )
-    Input Ports Configuration Error
-    1
-    >>> validate_data( (1), [3001,4001,64001], [(5003,3,5), (9003,3,9), (1303,3,13)], [10,60,40] )
-    Input Ports Configuration Error
-    1
-    >>> validate_data( (1), [3001,4001,3001], [(5003,3,5), (9003,3,9), (1303,3,13)], [10,60,40] )
-    Input Ports Configuration Error
-    1
-    >>> validate_data( 1, [3001,4001,5001], [(1022,3,5), (9003,3,9), (1303,3,13)], [10,60,40] )
-    Output Ports Configuration Error: Port number re-use
-    1
-    >>> validate_data( 1, [3001,4001,5001], [(5003,3,5), (64001,3,9), (1303,3,13)], [10,60,40] )
-    Output Ports Configuration Error: Port number re-use
-    1
-    >>> validate_data( 1, [3001,4001,5001], [(5003,3,5), (1303,3,9), (1303,3,13)], [10,60,40] )
-    Output Ports Configuration Error: Port number re-use
-    1
-    >>> validate_data( 1, [3001,4001,5001], [(5003,3,5), (9003,3,9), (3001,3,13)], [10,60,40] )
-    Output Ports Configuration Error: Port number re-use
-    1
-    >>> validate_data( 1, [3001,4001,5001], [(5003,0,5), (9003,15,9), (1303,3,13)], [10,60,40] )
-    Output Ports Configuration Error: Cost / Metric
-    1
-    >>> validate_data( 1, [3001,4001,5001], [(5003,1,5), (9003,16,9), (1303,3,13)], [10,60,40] )
-    0
-    >>> validate_data( 1, [3001,4001,5001], [(5003,1,5), (9003,17,9), (1303,3,13)], [10,60,40] )
-    Output Ports Configuration Error: Cost / Metric
-    1
-    >>> validate_data( 1, [3001,4001,5001], [(5003,1,5), (9003,15,9), (1303,3,13)], [10,60,40] )
-    0
-    >>> validate_data( 1, [3001,4001,5001], [(5003,3,0), (9003,3,9), (1303,3,13)], [10,60,40] )
-    Output Ports Configuration Error: ID
-    1
-    >>> validate_data( 1, [3001,4001,5001], [(5003,3,1), (9003,3,64001), (1303,3,13)], [10,60,40] )
-    Output Ports Configuration Error: ID
-    1
-    >>> validate_data( 1, [3001,4001,5001], [(5003,3,1), (9003,3,64000), (1303,3,13)], [10,60,40] )
-    0
-    >>> validate_data( 1, [3001,4001,5001], [(5003,3,5), (9003,3,9), (1303,3,13)], [10,50,40] )
-    Timers Configuration Error
-    1
-    >>> validate_data( 1, [3001,4001,5001], [(5003,3,5), (9003,3,9), (1303,3,13)], [10,60,30] )
-    Timers Configuration Error
-    1
-    >>> validate_data( 1, [3001,4001,5001], [(5003,3,5), (9003,3,9), (1303,3,13)], [10,35,40] )
-    Timers Configuration Error
-    1
-    >>> validate_data( 1, [3001,4001,5001], [(5003,3,5), (9003,3,9), (1303,3,13)], [20,10,42] )
-    Timers Configuration Error
-    1
-    """
-
     id_error = 0
     input_port_error = 0
     output_port_error = 0
@@ -186,14 +118,16 @@ def validate_data(router_id, input_ports, output_ports, timers):
     # temp_metric_set = set()
 
     if output_ports is None:
-        output_port_error = 1
+        print("Output Ports Configuration Error: No output ports were given")
+        return False
     else:
         # an_item is (output port,metric,id)
         for an_item in output_ports:
 
             # check port range
             if (an_item[0] < MIN_PORT) or (an_item[0] > MAX_PORT):
-                output_port_error = 1
+                print("Output Ports Configuration Error: Port out of range")
+                return False
                 break
             temp_output_port_set.add(an_item[0])
 
