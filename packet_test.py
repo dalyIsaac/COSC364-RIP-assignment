@@ -54,7 +54,7 @@ class TestPacketConstruction(TestCase):
 
     def test_single_entry(self):
         """
-        Tests a routing table, where the single entry does not match the
+        Tests a routing table where the single entry does not match the
         given router_id.
         """
         table = RoutingTable(0, 0, 0, 0)
@@ -72,8 +72,10 @@ class TestPacketConstruction(TestCase):
 
     def test_two_entries_router_id_clash(self):
         """
-        Tests that a routing table with two entries, where one entry was learnt
-        from the given router_id, only returns one route.
+        The routing table has two entries, where one entry was learnt from the
+        router that the packet is going to be sent to. The packet being
+        produced should contain only one entry - the entry which wasn't
+        produced by the router the packet is being sent to.
         """
         table_router_id = 1
         table = RoutingTable(table_router_id, 0, 0, 0)
@@ -98,7 +100,8 @@ class TestPacketConstruction(TestCase):
     def test_two_entries_infinity(self):
         """
         Tests that a routing table with two entries, where one entry has a
-        metric of infinity, but is flagged, is returned.
+        metric of infinity, but is flagged, produces a packet with the two
+        entries inside.
         """
         table = RoutingTable(0, 0, 0, 0)
         table.add_route(1, RouteEntry(0, 1, 2, 0, 0))
@@ -126,7 +129,8 @@ class TestPacketConstruction(TestCase):
     def test_two_entries_flag(self):
         """
         Tests that a routing table with two entries, where one entry has a
-        metric of infinity, and is not flagged, is not returned.
+        metric of infinity, and is not flagged, produces a packet with the
+        entry which isn't infinity inside.
         """
         table = RoutingTable(0, 0, 0, 0)
         table.add_route(1, RouteEntry(0, 1, 2, 0, 0))
@@ -190,7 +194,7 @@ class TestPacketReading(TestCase):
     def test_multiple_entries(self):
         """
         Tests that a packet with multiple entries (in this case 25
-        entries) can correctly read.
+        entries) can be correctly read.
         """
         packet, _ = get_two_packets()
         command, version, sender_router_id, entries = read_packet(packet)
