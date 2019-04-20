@@ -152,9 +152,13 @@ def get_packets(
     for sock in read:
         _, port = sock.getsockname()
         # bigger than the maximum packet size
-        packet, client_address = sock.recvfrom(1024)
-        packets.append((read_packet(packet), port, sock))
-        print(f"Received packet from port {port}.")
+        raw_packet, client_address = sock.recvfrom(1024)
+        packet = read_packet(raw_packet)
+        packets.append((packet, port, sock))
+        print(
+            f"Received packet from router_id: {packet.sender_router_id} | "
+            f"port: {port}"
+        )
 
     return packets
 
