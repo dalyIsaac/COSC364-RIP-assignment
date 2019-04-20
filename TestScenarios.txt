@@ -122,15 +122,20 @@ Forms a partial mesh network.
 
 Expected behaviour:
 cfg file is parsed, validater returns True, router loads config into table
-routing table is printed to screen as per the hello timer interval
-notifications shown on screen that packets are being sent to the connected router ids and ports
-notifications shown on screen that packets are being received from connected router ids and ports
-notifications shown on screen that timer events are occuring
-routing table should end up with ..
-R37:
-R41:
-R43:
-R47:
-R53:
-R59:
-R61:
+routing table is printed to screen as per the hello timer interval (Always)
+notifications shown on screen that packets are being sent to the connected router ids and ports (Debug only)
+notifications shown on screen that packets are being received from connected router ids and ports ((Debug only))
+notifications shown on screen that timer events are occuring (Debug only)
+routing tables should end up with ..
+[Format of following is - current Router ID: destination Router ID(next hop Router ID,cost)]
+R37: 41(41,1), 43(41,4), 47(41,8), 53(59,6), 59(59,5), 61(61,8) 
+R41: 37(37,1), 43(43,3), 47(43,7), 53(37,7), 59(37,6), 61(37,9)  
+R43: 37(41,4), 41(41,3), 47(47,4), 53(47,6), 59(47,7), 61(47,10)
+R47: 37(43,8), 41(43,7), 43(43,4), 53(53,2), 59(53,3), 61(61,6) 
+R53: 37(59,6), 41(59,7), 43(47,6), 47(47,2), 59(59,1), 61(47,8)
+R59: 37(37,5), 41(37,6), 43(37,9), 47(53,3), 53(53,1), 61(53,9)
+R61: 37(37,8), 41(37,9), 43(47,10), 47(47,6), 53(47,8), 59(47,9)
+Note equal costs:
+R37: 47(41,8) = 47(59,8)
+R47: 37(43,8) = 37(53,8)
+So it is possible the alternative route will be installed.
