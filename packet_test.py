@@ -3,12 +3,8 @@ from io import StringIO
 from socket import AF_INET
 from unittest import TestCase, main
 
-from packet import (
-    ResponsePacket,
-    construct_packets,
-    read_packet,
-    validate_packet,
-)
+from packet import (ResponsePacket, construct_packets, read_packet,
+                    validate_packet)
 from routeentry import RouteEntry
 from routingtable import RoutingTable
 

@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from select import select
-from socket import socket
+from socket import AF_INET, socket
 from typing import List, Tuple
 
 from output_processing import deletion_process, pool, send_responses
@@ -13,10 +13,18 @@ from validate_data import INFINITY, MAX_ID, MAX_METRIC, MIN_ID, MIN_METRIC
 def validate_entry(packet_entry: ResponseEntry) -> bool:
     """Validates an individual router entry."""
 
+    # Checks the entry's AFI value
+    if packet_entry.afi != AF_INET:
+        print(
+            f"The value {packet_entry.afi} for AFI does not match the "
+            f"expected value of AF_INET = {AF_INET}."
+        )
+        return False
+
     # Checks for the router_id
     if packet_entry.router_id < MIN_ID or packet_entry.router_id > MAX_ID:
         print(
-            f"The entries router id of {packet_entry.router_id} should be an "
+            f"The entry's router id of {packet_entry.router_id} should be an "
             f"integer between {MIN_ID} and {MAX_ID}, inclusive."
         )
         return False
