@@ -185,10 +185,3 @@ def validate_data(router_id, input_ports, output_ports, timers):
 
     # All good, yay! return a zero
     return True
-
-
-if __name__ == "__main__":
-
-    import doctest
-
-    doctest.testmod()
