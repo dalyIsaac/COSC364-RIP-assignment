@@ -32,6 +32,8 @@
 # v05: 19 April 2019
 # Changed id = int(cost) to id = int(id)
 #
+# v06: 20 April 2019
+# Made pyright happy by changing variable names, thus fixing typing inference
 ################################################################################
 
 
@@ -60,8 +62,8 @@ def read_config(filename):
 
             input_ports = []
             parts = values.split(",")
-            for port in parts:
-                port = int(port.strip())
+            for port_str in parts:
+                port = int(port_str.strip())
                 input_ports.append(port)
 
         elif option == "output-ports":
@@ -73,11 +75,11 @@ def read_config(filename):
             parts = values.split(",")
             for part in parts:
                 part = part.strip()
-                (port, cost, id) = part.split("-")
-                port = int(port)
+                (port_str, cost, curr_id) = part.split("-")
+                port_str = int(port_str)
                 cost = int(cost)
-                id = int(id)  # fixed error here
-                output_ports.append((port, cost, id))
+                curr_id = int(curr_id)  # fixed error here
+                output_ports.append((port_str, cost, curr_id))
         elif option == "timers":
             if timers is not None:
                 print("multiple timers lines")
@@ -85,8 +87,8 @@ def read_config(filename):
 
             timers = []
             parts = values.split(",")
-            for port in parts:
-                port = int(port.strip())
+            for port_str in parts:
+                port = int(port_str.strip())
                 timers.append(port)
     f.close()
     return (router_id, input_ports, output_ports, timers)
