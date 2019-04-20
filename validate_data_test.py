@@ -1,7 +1,8 @@
-from unittest import TestCase, main
-from validate_data import validate_data
 import sys
 from io import StringIO
+from unittest import TestCase, main
+
+from validate_data import validate_data
 
 
 class ValidateDataTest(TestCase):
