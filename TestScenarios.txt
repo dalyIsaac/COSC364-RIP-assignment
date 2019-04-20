@@ -1,6 +1,14 @@
 Test Scenarios
+Version 1: 19 April 2019
+    Outlined some basic tests, what the networks should look like and
+    therefore what needs to be in the cfg files, what screen output
+    should be seen, and what the routing table shouod converge to.
+Version 2: 19 April 2019
+    Added the notes field and version info.
+    Started detailing test case 6 (per test example in assignment specification).
+
 Text to describe basic test cases, expected behaviour and how the config
-files will need to be set up to achvie the test.
+files will need to be set up to achieve the test.
 
 
 Notes
@@ -9,7 +17,9 @@ Costs are even numbers.
 Router ID's are increasing primes, per test.
 Port numbers are a combination of this router ID and destination router ID. 
 Anything that has a non-prime port number combination is to provide some additional 
-starting data into the route table.
+starting data into the route table. (Note that addtional ports will be opened but
+corresponding routes should be removed from the table.)
+Timers are mostly set to 5, 30, 20 (Hello, Dead, Garbage)
 
 Test Case 1
 Start a single router instance with config file R2
@@ -81,7 +91,7 @@ Start three router instances with config files R23, R29 and R31
 R23 has direct connection to R29 only.
 R29 has direct connection to R23 and direct connection to R31.
 R31 has direct connecion to R29 only.
-Star network with R29 as the central router.
+Star (aka hub and spoke) network with R29 as the central (aka hub) router.
 
 Expected behaviour:
 cfg file is parsed, validater returns True, router loads config into table
@@ -94,3 +104,33 @@ R23 has direct connection to R29. R23 has connection to R31 via R29.
 R29 has direct connections to R29 and R31.
 R31 has direct connection to R29. R31 has connection to R23 via R29.
 
+
+Test Case 6
+As per example in assignment specification - Bring it on!
+Start seven router instances with config files R37, R41, R43, R47, R53, R59, and R61.
+R61 connected to R37 (cost = 8) and R47 (cost = 6). (Hub with two spokes)
+But R37 through R59 are also connected in a ring:
+    R37 connects to R41 (1), R59 (5) and R61 (7);
+    R41 connects to R37 (1) and R43 (3);
+    R43 connects to R41 (3) and R47 (4);
+    R47 connects to R43 (4), R53 (2) and R61 (6);
+    R53 connects to R47 (2) and R59 (1);
+    R59 connects to R53 (1) and R37 (5);
+    R61 connects to R37 (8) and R47 (6).
+ 
+Forms a partial mesh network.
+
+Expected behaviour:
+cfg file is parsed, validater returns True, router loads config into table
+routing table is printed to screen as per the hello timer interval
+notifications shown on screen that packets are being sent to the connected router ids and ports
+notifications shown on screen that packets are being received from connected router ids and ports
+notifications shown on screen that timer events are occuring
+routing table should end up with ..
+R37:
+R41:
+R43:
+R47:
+R53:
+R59:
+R61:
