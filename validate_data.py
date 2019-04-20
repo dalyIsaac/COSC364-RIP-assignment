@@ -104,7 +104,7 @@ def validate_data(router_id, input_ports, output_ports, timers):
 
     # set error error if the length of temporary list
     #   is not the same as length of original port list
-    if len(temp_input_set) is not len(input_ports):
+    if len(temp_input_set) != len(input_ports):
         input_port_error = 1
 
     if input_port_error == 1:
@@ -171,7 +171,7 @@ def validate_data(router_id, input_ports, output_ports, timers):
 
     #
     # Check Timers
-    if len(timers) is not 3:
+    if len(timers) != 3:
         timers_error = 1
     else:
         if (timers[1] / timers[0]) != PERIODIC_DEAD_RATIO:
