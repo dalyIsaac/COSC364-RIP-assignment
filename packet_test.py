@@ -1,7 +1,10 @@
+import sys
+from io import StringIO
 from socket import AF_INET
 from unittest import TestCase, main
 
-from packet import construct_packets, read_packet
+from packet import (ResponsePacket, construct_packets, read_packet,
+                    validate_packet)
 from routeentry import RouteEntry
 from routingtable import RoutingTable
 
@@ -54,7 +57,7 @@ class TestPacketConstruction(TestCase):
 
     def test_single_entry(self):
         """
-        Tests a routing table, where the single entry does not match the
+        Tests a routing table where the single entry does not match the
         given router_id.
         """
         table = RoutingTable(0, 0, 0, 0)
@@ -72,8 +75,10 @@ class TestPacketConstruction(TestCase):
 
     def test_two_entries_router_id_clash(self):
         """
-        Tests that a routing table with two entries, where one entry was learnt
-        from the given router_id, only returns one route.
+        The routing table has two entries, where one entry was learnt from the
+        router that the packet is going to be sent to. The packet being
+        produced should contain only one entry - the entry which wasn't
+        produced by the router the packet is being sent to.
         """
         table_router_id = 1
         table = RoutingTable(table_router_id, 0, 0, 0)
@@ -98,7 +103,8 @@ class TestPacketConstruction(TestCase):
     def test_two_entries_infinity(self):
         """
         Tests that a routing table with two entries, where one entry has a
-        metric of infinity, but is flagged, is returned.
+        metric of infinity, but is flagged, produces a packet with the two
+        entries inside.
         """
         table = RoutingTable(0, 0, 0, 0)
         table.add_route(1, RouteEntry(0, 1, 2, 0, 0))
@@ -126,7 +132,8 @@ class TestPacketConstruction(TestCase):
     def test_two_entries_flag(self):
         """
         Tests that a routing table with two entries, where one entry has a
-        metric of infinity, and is not flagged, is not returned.
+        metric of infinity, and is not flagged, produces a packet with the
+        entry which isn't infinity inside.
         """
         table = RoutingTable(0, 0, 0, 0)
         table.add_route(1, RouteEntry(0, 1, 2, 0, 0))
@@ -190,7 +197,7 @@ class TestPacketReading(TestCase):
     def test_multiple_entries(self):
         """
         Tests that a packet with multiple entries (in this case 25
-        entries) can correctly read.
+        entries) can be correctly read.
         """
         packet, _ = get_two_packets()
         command, version, sender_router_id, entries = read_packet(packet)
@@ -205,6 +212,75 @@ class TestPacketReading(TestCase):
             self.assertEqual(afi, AF_INET)
             self.assertEqual(router_id, expected_router_id)
             self.assertEqual(metric, 1)
+
+
+class TestValidatePacket(TestCase):
+    table: RoutingTable
+    captured_output = StringIO()
+
+    def setUp(self):
+        self.captured_output = StringIO()
+        sys.stdout = self.captured_output
+
+        self.table = RoutingTable(
+            router_id=1, update_delta=10, timeout_delta=60, gc_delta=40
+        )
+        self.table.add_route(
+            router_id=2,
+            route=RouteEntry(
+                port=4000, metric=2, next_address=3, timeout_time=60
+            ),
+        )
+
+    def assertOutputEqual(self, expected: str, endline="\n"):
+        sys.stdout = sys.__stdout__
+        self.assertEqual(expected + endline, self.captured_output.getvalue())
+
+    def test_valid_packet(self):
+        packet = ResponsePacket(
+            command=2, version=2, sender_router_id=2, entries=[]
+        )
+        self.assertEqual(validate_packet(self.table, packet), True)
+
+    def test_invalid_neighbour(self):
+        packet = ResponsePacket(
+            command=2, version=2, sender_router_id=3, entries=[]
+        )
+        self.assertEqual(validate_packet(self.table, packet), False)
+        self.assertOutputEqual(
+            "Packet received from router_id 3, which is not "
+            "a neighbour of this router.\n"
+            "Current neighbours of this router 1 are [2]."
+        )
+
+    def test_sender_is_self(self):
+        packet = ResponsePacket(
+            command=2, version=2, sender_router_id=1, entries=[]
+        )
+        self.assertEqual(validate_packet(self.table, packet), False)
+        self.assertOutputEqual(
+            "The packet's router_id of 1 illegally matches the router_id of "
+            "this router."
+        )
+
+    def test_invalid_command(self):
+        packet = ResponsePacket(
+            command=1, version=2, sender_router_id=2, entries=[]
+        )
+        self.assertEqual(validate_packet(self.table, packet), False)
+        self.assertOutputEqual(
+            "The packet has a command value of 1, instead of 2."
+        )
+
+    def test_invalid_version(self):
+        packet = ResponsePacket(
+            command=2, version=1, sender_router_id=2, entries=[]
+        )
+        self.assertEqual(validate_packet(self.table, packet), False)
+        self.assertOutputEqual(
+            "The packet has a version value of 1, instead of 2."
+        )
+
 
 
 if __name__ == "__main__":

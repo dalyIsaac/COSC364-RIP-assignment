@@ -131,18 +131,6 @@ def validate_packet(table: RoutingTable, packet: ResponsePacket):
     """
     Returns a Boolean indicating whether the given packet is valid.
     """
-    # Checks whether the router_id is from a valid neighbour
-    if packet.sender_router_id not in table.neighbours():
-        print(
-            f"Packet received from router_id {table.sender_router_id}, which "
-            + "is not a neighbour of this router."
-        )
-        print(
-            f"Current neighbours of this router {table.router_id} are "
-            + "{[i for i in table.neighbours()]}."
-        )
-        return False
-
     # Checks whether the router_id belongs to the router itself
     if table.router_id == packet.sender_router_id:
         print(
@@ -151,16 +139,28 @@ def validate_packet(table: RoutingTable, packet: ResponsePacket):
         )
         return False
 
+    # Checks whether the router_id is from a valid neighbour
+    if packet.sender_router_id not in table.neighbours():
+        print(
+            f"Packet received from router_id {packet.sender_router_id}, which "
+            "is not a neighbour of this router."
+        )
+        print(
+            f"Current neighbours of this router {table.router_id} are "
+            f"{[i for i in table.neighbours()]}."
+        )
+        return False
+
     # Checks that the command is valid
     if packet.command != 2:
         print(
-            f"The packet had a command value of {packet.command}, instead of 2."
+            f"The packet has a command value of {packet.command}, instead of 2."
         )
         return False
 
     if packet.version != 2:
         print(
-            f"The packet had a version value of {packet.version}, instead of 2."
+            f"The packet has a version value of {packet.version}, instead of 2."
         )
         return False
 
