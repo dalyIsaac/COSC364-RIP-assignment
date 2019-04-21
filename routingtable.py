@@ -207,9 +207,10 @@ class RoutingTable:
         if initial_time is None:
             initial_time = datetime.now()
         diff = randint(1, 5)
-        self.triggered_update_time = initial_time + timedelta(seconds=diff)
+        diff_delta = timedelta(seconds=diff)
+        self.triggered_update_time = initial_time + diff_delta
         if self.triggered_update_time >= self.sched_update_time:
             return False
 
         sleep(diff)
-        return initial_time + diff == self.triggered_update_time
+        return initial_time + diff_delta == self.triggered_update_time
