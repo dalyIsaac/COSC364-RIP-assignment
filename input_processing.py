@@ -94,10 +94,7 @@ def adopt_route(
     # send_responses(table, sock)
 
     if new_metric == INFINITY:
-        # NOTE: The following line was added, so that only updates to INFINITY
-        # cause triggered updates.
-        send_responses(table, sock)
-
+        # The following will eventually cause a triggered update.
         pool.submit(deletion_process, table)
     else:
         table_entry.update_timeout_time(table.timeout_delta)
