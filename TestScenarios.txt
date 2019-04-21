@@ -33,39 +33,83 @@ routing table should end up empty as we are not receving any packets (route info
 
 
 Test Case 2
+Process
+    A
 Start two router instances with config files R1 and R3
 R1 is directly connected to R3, so are peered
+    B
+Stop router instance R3 or R1
+Wait for network to re-converge.
+Observe notifications and final routing tables.
+    C
+Start whichever router instance was stopped
+Wait for network to re-converge.
+Observe notifications and final routing tables.
 
 Expected behaviour:
+    A
 cfg file is parsed, validater returns True, router loads config into table
 routing table is printed to screen as per the hello timer interval
 notifications shown on screen that packets are being sent to the router id and port
 notifications shown on screen that packets are being received router and port
 notifications shown on screen that timer events are occuring
 routing table should end up with a single route to the other router i.e.
-R1 has one route to R3 and R3 has one router to R1
-
+[shown by R<current Router ID>: <destination Router ID>(<next hop Router ID>,<cost>)]
+R1: 3(3,8)
+R3: 1(1,8)
+    B
+Either 
+R1: empty
+or
+R3: empty
+    C
+As per A.
 
 Test Case 3
+Process:
+    A
 Start three router instances with config files R5, R7 and R11
 R5 has direct connection to R7 and direct connection to R11.
 R11 has direct connection to R7 and direct connection to R5.
 R7 has direct connections to R11 and R5.
 So a simple network ring of three routers.
 All link costs are equal.
+    B
+Close R5
+Wait for network to re-converge.
+Observe notifications and final routing tables.
+    C
+Start R5
+Wait for network to re-converge.
+Observe notifications and final routing tables.
 
 Expected behaviour:
+    A
 cfg file is parsed, validater returns True, router loads config into table
 routing table is printed to screen as per the hello timer interval
 notifications shown on screen that packets are being sent to the two router id's and ports
 notifications shown on screen that packets are being received from two router id's and ports
 notifications shown on screen that timer events are occuring
 routing table should converge to:
+R5:     7(7,8), 11(11,8)
+R7:     5(5,8), 11(11,8)
+R11:    5(5,8), 7(7,8)
 R5 has a route to R7 and a route to R11. R7 has a route to R5 and a route to R11.
 R11 has a route to R5 and a route to R7
+    B
+Notifications of dead time, garbage collection timers, routing table changes.   
+Fnal routing table:
+R7:     11(11,8)
+R11:    7(7,8)
+    C
+Notifications of dead time, garbage collection timers, routing table changes.
+Fnal routing table:
+As per A 
 
 
 Test Case 4
+Process:
+    A
 Start three router instances with config files R13, R17 and R19
 R13 has direct connection to R17 cost 8 and direct connection to R19 cost 2.
 R17 has direct connection to R19 cost 2 and direct connection to R13 cost 8.
@@ -73,40 +117,96 @@ R19 has direct connection to R13 and direct connection to R19, both cost 2.
 Simple network ring of three routers, but with different costs.
 Link cost direct between R13 and R17 is greater than the sum 
     of the costs between R13 and R17 via R19 i.e. via R19 has lower cost. 
+    B
+Close router instance R19.
+Wait for network to re-converge.
+Observe notifications and final routing tables.
+    C
+Start router instance R19.
+Wait for network to re-converge.
+Observe notifications and final routing tables.
 
 Expected behaviour:
-cfg file is parsed, validater returns True, router loads config into table
-routing table is printed to screen as per the hello timer interval
-notifications shown on screen that packets are being sent to the two router id's and ports
-notifications shown on screen that packets are being received from two router id's and ports
-notifications shown on screen that timer events are occuring
+    A
+cfg file is parsed, validater returns True, router loads config into table.
+routing table is printed to screen as per the hello timer interval.
+notifications shown on screen that packets are being sent to the two router id's and ports.
+notifications shown on screen that packets are being received from two router id's and ports.
+notifications shown on screen that timer events are occuring.
 routing table should end up with:
-R13 has a route to R17 via R19. R13 also has a route to R19.
-R17 has a route to R19. R17 also has a route to R13 via R19.
-R19 has a route to R13 and a route to R17.
+R13: 17(19,4), 19(19,2)
+R17: 13(19,4), 19(19,2)
+R19: 13(13,2), 17(17,2)
+    B
+notifications of dead time, garbage collection timers, routing table changes.
+final routing table:
+R13: 17(17,8)
+R17: 13(13,8)
+    C
+notifications of dead time, garbage collection timers, routing table changes.
+final routing table:
+As per A.
 
 
 Test Case 5
+Process:
+    A
 Start three router instances with config files R23, R29 and R31
 R23 has direct connection to R29 only.
 R29 has direct connection to R23 and direct connection to R31.
 R31 has direct connecion to R29 only.
 Star (aka hub and spoke) network with R29 as the central (aka hub) router.
+    B
+Close router instance R31.
+Wait for network to re-converge.
+Observe notifications and final routing tables.
+    C
+Start router instance R31.
+Wait for network to re-converge. Could be 140 secsonds or more (8x Hello + 2x Dead + 2x Garbage).
+Observe notifications and final routing tables.
+    D
+Close router instance R29.
+Wait for network to re-converge.
+Observe notifications and final routing tables.
+    E
+Start router instance R29.
+Wait for network to re-converge.
+Observe notifications and final routing tables.
 
 Expected behaviour:
+    A
 cfg file is parsed, validater returns True, router loads config into table
 routing table is printed to screen as per the hello timer interval
 notifications shown on screen that packets are being sent to the connected router id and port
 notifications shown on screen that packets are being received from connected router id and port
 notifications shown on screen that timer events are occuring
 routing table should end up with:
-R23 has direct connection to R29. R23 has connection to R31 via R29.
-R29 has direct connections to R29 and R31.
-R31 has direct connection to R29. R31 has connection to R23 via R29.
-
+R23: 29(29,4), 31(29,8)
+R29: 23(23,4), 31(31,4)
+R31: 23(29,8), 29(29,4)
+    B
+notifications of dead time, and garbage collection timers, routing table changes.
+final routing table:
+R23: 29(29,4)
+R29: 23(23,4)
+    C
+notifications of dead time, and garbage collection timers.
+final routing table:
+as per A.
+    D
+notifications of dead time, and garbage collection timers.
+final routing table:
+R23: empty
+R29: empty
+    E
+notifications of dead time, and garbage collection timers.
+final routing table:
+as per A.
 
 Test Case 6
 As per example in assignment specification - Bring it on!
+Process
+    A
 Start seven router instances with config files R37, R41, R43, R47, R53, R59, and R61.
 R61 connected to R37 (cost = 8) and R47 (cost = 6). (Hub with two spokes)
 But R37 through R59 are also connected in a ring:
@@ -117,17 +217,19 @@ But R37 through R59 are also connected in a ring:
     R53 connects to R47 (2) and R59 (1);
     R59 connects to R53 (1) and R37 (5);
     R61 connects to R37 (8) and R47 (6).
+    B
+
  
 Forms a partial mesh network.
 
 Expected behaviour:
+    A
 cfg file is parsed, validater returns True, router loads config into table
 routing table is printed to screen as per the hello timer interval (Always)
 notifications shown on screen that packets are being sent to the connected router ids and ports (Debug only)
-notifications shown on screen that packets are being received from connected router ids and ports ((Debug only))
+notifications shown on screen that packets are being received from connected router ids and ports (Debug only)
 notifications shown on screen that timer events are occuring (Debug only)
-routing tables should end up with ..
-[Format of following is - current Router ID: destination Router ID(next hop Router ID,cost)]
+final routing tables ..
 R37: 41(41,1), 43(41,4), 47(41,8), 53(59,6), 59(59,5), 61(61,8) 
 R41: 37(37,1), 43(43,3), 47(43,7), 53(37,7), 59(37,6), 61(37,9)  
 R43: 37(41,4), 41(41,3), 47(47,4), 53(47,6), 59(47,7), 61(47,10)
@@ -138,4 +240,7 @@ R61: 37(37,8), 41(37,9), 43(47,10), 47(47,6), 53(47,8), 59(47,9)
 Note equal costs:
 R37: 47(41,8) = 47(59,8)
 R47: 37(43,8) = 37(53,8)
-So it is possible the alternative route will be installed.
+So it is possible the alternative route will be installed for one or both.
+    B
+notifications of dead time, and garbage collection timers.
+final routing tables ..

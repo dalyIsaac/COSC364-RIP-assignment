@@ -22,15 +22,15 @@
 #
 # v0_3
 # poc_parser.py
-# Grateful for help from jps111
-# Reads complete config file since size is small
-# Uses join and split operations on lines
+# Guidance, support and sample code provided by jps111.
+# Reads complete config file since size is small.
+# Uses join and split operations on lines.
 #
 # v04: 18 April 2019
 # Fixed some linting errors
 #
 # v05: 19 April 2019
-# Changed id = int(cost) to id = int(id)
+# Bug fix: Changed id = int(cost) to id = int(id)
 #
 # v06: 20 April 2019
 # Made pyright happy by changing variable names, thus fixing typing inference
