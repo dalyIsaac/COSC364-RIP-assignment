@@ -6,9 +6,12 @@ Version 1: 19 April 2019
 Version 2: 19 April 2019
     Added the notes field and version info.
     Started detailing test case 6 (per test example in assignment specification).
+Version 2: 22 April 2019
+    Expanded Test Scenario 5 to stop and start R31 (the far end router).
 
-Text to describe basic test cases, expected behaviour and how the config
-files will need to be set up to achieve the test.
+Text to describe basic test scenarios and expected behaviour.
+Original purpose to help with creating the configuration needed per test.
+
 
 
 Notes
@@ -16,7 +19,7 @@ Using terminology "cost", noting that cost and metric are interchangable.
 Costs are even numbers.
 Router ID's are increasing primes, per test.
 Port numbers are a combination of this router ID and destination router ID. 
-Anything that has a non-prime port number combination is to provide some additional 
+Generally anything that has a non-prime port number combination is to provide some additional 
 starting data into the route table. (Note that addtional ports will be opened but
 corresponding routes should be removed from the table.)
 Timers are mostly set to 5, 30, 20 (Hello, Dead, Garbage)
@@ -197,11 +200,12 @@ as per A.
 notifications of dead time, and garbage collection timers.
 final routing table:
 R23: empty
-R29: empty
+R31: empty
     E
 notifications of dead time, and garbage collection timers.
 final routing table:
 as per A.
+
 
 Test Case 6
 As per example in assignment specification - Bring it on!
@@ -210,16 +214,22 @@ Process
 Start seven router instances with config files R37, R41, R43, R47, R53, R59, and R61.
 R61 connected to R37 (cost = 8) and R47 (cost = 6). (Hub with two spokes)
 But R37 through R59 are also connected in a ring:
-    R37 connects to R41 (1), R59 (5) and R61 (7);
-    R41 connects to R37 (1) and R43 (3);
-    R43 connects to R41 (3) and R47 (4);
-    R47 connects to R43 (4), R53 (2) and R61 (6);
-    R53 connects to R47 (2) and R59 (1);
-    R59 connects to R53 (1) and R37 (5);
-    R61 connects to R37 (8) and R47 (6).
+R37 connects to R41 (1), R59 (5) and R61 (7);
+R41 connects to R37 (1) and R43 (3);
+R43 connects to R41 (3) and R47 (4);
+R47 connects to R43 (4), R53 (2) and R61 (6);
+R53 connects to R47 (2) and R59 (1);
+R59 connects to R53 (1) and R37 (5);
+R61 connects to R37 (8) and R47 (6).
     B
+Close router instance R43
+Wait for network to re-converge.
+Observe notifications and final routing tables.
+    C
+Start router instance R43.
+Wait for network to re-converge.
+Observe notifications and final routing tables.
 
- 
 Forms a partial mesh network.
 
 Expected behaviour:
@@ -243,4 +253,18 @@ R47: 37(43,8) = 37(53,8)
 So it is possible the alternative route will be installed for one or both.
     B
 notifications of dead time, and garbage collection timers.
-final routing tables ..
+final routing tables:
+R37: 41(41,1), 43(41,4), 47(41,8), 53(59,6), 59(59,5), 61(61,8) 
+R41: 37(37,1), 43(43,3), 47(43,7), 53(37,7), 59(37,6), 61(37,9)  
+R43: 37(41,4), 41(41,3), 47(47,4), 53(47,6), 59(47,7), 61(47,10)
+R47: 37(43,8), 41(43,7), 43(43,4), 53(53,2), 59(53,3), 61(61,6) 
+R53: 37(59,6), 41(59,7), 43(47,6), 47(47,2), 59(59,1), 61(47,8)
+R59: 37(37,5), 41(37,6), 43(37,9), 47(53,3), 53(53,1), 61(53,9)
+R61: 37(37,8), 41(37,9), 43(47,10), 47(47,6), 53(47,8), 59(47,9)
+Note equal costs:
+R37: 47(41,8) = 47(59,8)
+R47: 37(43,8) = 37(53,8)
+    C
+notifications of dead time, and garbage collection timers.
+final routing table:
+as per A.
