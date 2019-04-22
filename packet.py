@@ -24,7 +24,7 @@ class ResponsePacket(NamedTuple):
     entries: List[ResponseEntry]
 
 
-def get_next_packet_entries(table: RoutingTable, router_id: int):
+def get_next_packet_entries(table: RoutingTable, dest_router_id: int):
     """
     Gets the entries from the routing table, which can be sent to the given
     `router_id`. Entries which have a metric of less than infinity, or have a
@@ -36,12 +36,14 @@ def get_next_packet_entries(table: RoutingTable, router_id: int):
     router_id -- The router the packet is being sent to.
     """
     entries = []
-    for destination_router_id in table:
-        route = table[destination_router_id]
-        if route.learned_from != router_id and (
-            route.metric < INFINITY or route.flag
+    for current_router_id in table:
+        route = table[current_router_id]
+        if (
+            route.learned_from != dest_router_id
+            and current_router_id != dest_router_id
+            and (route.metric < INFINITY or route.flag)
         ):
-            entries.append((destination_router_id, route))
+            entries.append((current_router_id, route))
             if len(entries) == MAX_ENTRIES:
                 yield entries
                 entries = []

@@ -44,6 +44,7 @@ def create_table(
     for port, cost, neighbour_router_id in output_ports:
         route = RouteEntry(port, cost, neighbour_router_id, timeout_time)
         table.add_route(neighbour_router_id, route)
+        table.add_router_port(router_id, port)
 
     return table
 

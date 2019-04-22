@@ -15,6 +15,8 @@ class RoutingTable:
     table -- Contains the routing table, in the form of
     `{[key: router_id]: RouteEntry}`.
 
+    port_lookup - Contains router_id - port associations.
+
     router_id -- The router of this router.
 
     sched_update_time -- The time at which a normally scheduled Response will
@@ -30,6 +32,7 @@ class RoutingTable:
     """
 
     table: Dict[int, RouteEntry]
+    ports_lookup_table: Dict[int, int] = {}
 
     sched_update_time: datetime
     triggered_update_time: Optional[datetime] = None
@@ -51,6 +54,7 @@ class RoutingTable:
         self.update_sched_update_time()
         self.timeout_delta = timeout_delta
         self.gc_delta = gc_delta
+        self.ports_lookup_table
 
     def __len__(self):
         """Returns the number of items inside the routing table"""
@@ -81,7 +85,7 @@ class RoutingTable:
 
     def _str_headers(self, router_id: int) -> str:
         output = (
-            "| port | metric | next_address | learned_from | flag   | "
+            "| router_id | port | metric | next_address | learned_from | flag | "
             + "timeout_time".ljust(26)
             + " | "
             + "gc_time".ljust(26)
@@ -100,6 +104,8 @@ class RoutingTable:
         e = self.table[router_id]
         output = (
             "| "
+            + str(router_id).ljust(9)
+            + " | "
             + str(e.port).ljust(4)
             + " | "
             + str(e.metric).ljust(6)
@@ -153,6 +159,9 @@ class RoutingTable:
         Adds the `RouteEntry`  to the table, and associates it with the given
         `router_id`."""
         self.table[router_id] = route
+
+    def add_router_port(self, router_id: int, port: int):
+        self.ports_lookup_table[router_id] = port
 
     def remove_route(self, router_id: int) -> None:
         """

@@ -52,8 +52,9 @@ def add_route(
     """
     Adds a newly learned route to the routing table.
     """
+    actual_port = table.ports_lookup_table[learned_from]
     entry = RouteEntry(
-        port, metric, learned_from, table.timeout_delta, learned_from
+        actual_port, metric, learned_from, table.timeout_delta, learned_from
     )
     entry.gc_time = None
     entry.flag = True
@@ -183,7 +184,7 @@ def get_packets(
         packets.append((packet, port, sock))
         print(
             f"Received packet from router_id: {packet.sender_router_id} | "
-            f"port: {port}"
+            f"input port: {port}"
         )
 
     return packets
