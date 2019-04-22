@@ -1,6 +1,7 @@
 from socket import AF_INET
 from typing import List, NamedTuple
 
+from routeentry import RouteEntry
 from routingtable import RoutingTable
 from validate_data import INFINITY
 
@@ -37,16 +38,15 @@ def get_next_packet_entries(table: RoutingTable, dest_router_id: int):
     """
     entries = []
     for current_router_id in table:
-        route = table[current_router_id]
-        if (
-            route.learned_from != dest_router_id
-            and current_router_id != dest_router_id
-            and (route.metric < INFINITY or route.flag)
-        ):
-            entries.append((current_router_id, route))
-            if len(entries) == MAX_ENTRIES:
-                yield entries
-                entries = []
+        route: RouteEntry = table[current_router_id]
+        if route.learned_from == dest_router_id:
+            route = route.shallow_copy()
+            route.metric = INFINITY
+
+        entries.append((current_router_id, route))
+        if len(entries) == MAX_ENTRIES:
+            yield entries
+            entries = []
     yield entries
 
 

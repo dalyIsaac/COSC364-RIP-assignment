@@ -45,14 +45,13 @@ def add_route(
     table: RoutingTable,
     packet_entry: ResponseEntry,
     metric: int,
-    port: int,
     learned_from: int,
     sock: socket,
 ):
     """
     Adds a newly learned route to the routing table.
     """
-    actual_port = table.ports_lookup_table[learned_from]
+    actual_port = table.config_table[learned_from].port
     entry = RouteEntry(
         actual_port, metric, learned_from, table.timeout_delta, learned_from
     )
@@ -163,7 +162,7 @@ def process_entry(
         )
     else:
         add_route(
-            table, packet_entry, new_metric, port, packet.sender_router_id, sock
+            table, packet_entry, new_metric, packet.sender_router_id, sock
         )
 
 
@@ -190,11 +189,22 @@ def get_packets(
     return packets
 
 
+def add_discovered(table: RoutingTable, packet: ResponsePacket, sock: socket):
+    if packet.sender_router_id not in table.config_table:
+        print(f"router_id {packet.sender_router_id} is not in the config file.")
+        return
+    metric = table.config_table[packet.sender_router_id].cost
+    fake_packet_entry = ResponseEntry(AF_INET, packet.sender_router_id, metric)
+    add_route(table, fake_packet_entry, metric, packet.sender_router_id, sock)
+
+
 def input_processing(table: RoutingTable, sockets: List[socket]):
     """
     The processing is the same, no matter why the Response was generated.
     """
     for packet, port, sock in get_packets(sockets):
-        if validate_packet(table, packet):
+        if len(packet.entries) == 0:
+            add_discovered(table, packet, sock)
+        elif validate_packet(table, packet):
             for entry in packet.entries:
                 process_entry(table, entry, packet, port, sock)

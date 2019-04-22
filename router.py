@@ -3,25 +3,18 @@ from datetime import datetime
 from socket import socket
 from typing import List, Tuple
 
+from packet import construct_packets
 from input_processing import input_processing
-from output_processing import deletion_process, send_responses
+from output_processing import deletion_process, send_response, send_responses
 from poc_parser_v03 import read_config
 from port_closer import port_closer
 from port_opener import port_opener
-from routeentry import RouteEntry
 from routingtable import RoutingTable
 from validate_data import validate_data
 
 
-def daemon(table: RoutingTable, sockets: List[socket]):
+def daemon(table: RoutingTable, sockets: List[socket], output_sock: socket):
     """Main body of the router."""
-    if len(sockets) == 0:
-        print("No sockets were opened.")
-        return
-
-    # first open socket is chosen to be the output socket
-    output_sock: socket = sockets[0]
-
     while True:
         while table.sched_update_time > datetime.now():
             input_processing(table, sockets)
@@ -42,11 +35,18 @@ def create_table(
     table = RoutingTable(router_id, update_time, timeout_time, gc_time)
 
     for port, cost, neighbour_router_id in output_ports:
-        route = RouteEntry(port, cost, neighbour_router_id, timeout_time)
-        table.add_route(neighbour_router_id, route)
-        table.add_router_port(router_id, port)
+        table.add_config_data(router_id, port, cost)
 
     return table
+
+
+def startup(table: RoutingTable, output_sock: socket):
+    print(str(table))
+    for router_id in table.config_table:
+        packets = construct_packets(table, router_id)
+        for packet in packets:
+            port = table.config_table[router_id].port
+            send_response(output_sock, port, packet)
 
 
 def main():
@@ -64,8 +64,16 @@ def main():
         else:
             sockets = result
 
+        if len(sockets) == 0:
+            print("No sockets were opened.")
+            return
+
+        # first open socket is chosen to be the output socket
+        output_sock: socket = sockets[0]
+
         table = create_table(router_id, sockets, output_ports, timers)
-        daemon(table, sockets)
+        startup(table, output_sock)
+        daemon(table, sockets, output_sock)
 
     except IndexError:
         print("Please give a filename.")

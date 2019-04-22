@@ -10,15 +10,13 @@ from validate_data import INFINITY
 pool = ThreadPoolExecutor()
 
 
-def send_response(
-    table: RoutingTable, sock: socket, router_id: int, packet: bytearray
-):
+def send_response(sock: socket, port: int, packet: bytearray):
     """
     Sends a `Response` packet to the given `router_id`.
     """
     # Ignore the pyright error - it fails to resolve bytearray and bytes, when
     # it really should.
-    sock.sendto(packet, ("localhost", table[router_id].port))
+    sock.sendto(packet, ("localhost", port))
 
 
 def _send_responses(table: RoutingTable, sock: socket, clear_flags=False):
@@ -26,7 +24,8 @@ def _send_responses(table: RoutingTable, sock: socket, clear_flags=False):
     for router_id in table:
         packets = construct_packets(table, router_id)
         for packet in packets:
-            send_response(table, sock, router_id, packet)
+            port = table[router_id].port
+            send_response(sock, port, packet)
 
     if clear_flags:
         for router_id in table:
