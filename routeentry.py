@@ -53,7 +53,7 @@ class RouteEntry:
         self.learned_from = learned_from
 
     def update_timeout_time(
-        self, timeout_time: int, initial_time: Optional[datetime] = None
+        self, timeout_time: int, initial_time_arg: Optional[datetime] = None
     ) -> datetime:
         """
         Updates the timeout time, at which point this `RouteEntry` enter the
@@ -69,13 +69,14 @@ class RouteEntry:
 
         initial_time -- The initial time, defaults to `datetime.now()`
         """
-        if initial_time is None:
-            initial_time = datetime.now()
+        initial_time = (
+            initial_time_arg if initial_time_arg is not None else datetime.now()
+        )
         self.timeout_time = initial_time + timedelta(seconds=timeout_time)
         return initial_time
 
     def set_garbage_collection_time(
-        self, gc_delta: int, initial_time: Optional[datetime] = None
+        self, gc_delta: int, initial_time_arg: Optional[datetime] = None
     ) -> datetime:
         """
         Updates the garbage collection time, at which point this `RouteEntry`
@@ -90,7 +91,8 @@ class RouteEntry:
         initial_time -- The initial time, as specified. Defaults to
         `datetime.now()`
         """
-        if initial_time is None:
-            initial_time = datetime.now()
+        initial_time = (
+            initial_time_arg if initial_time_arg is not None else datetime.now()
+        )
         self.gc_time = initial_time + timedelta(seconds=gc_delta)
         return initial_time

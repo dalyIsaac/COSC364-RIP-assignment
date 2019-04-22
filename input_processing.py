@@ -84,7 +84,8 @@ def adopt_route(
     table_entry.metric = new_metric
     table_entry.next_address = learned_from
     table_entry.flag = True
-    table.learned_from = learned_from
+    table_entry.learned_from = learned_from
+    table_entry.triggered_update_time = None
 
     # NOTE: As per the assignment spec, "implement triggered updates when
     # routes become invalid  (i.e. when a router sets the routes metric to

@@ -165,7 +165,7 @@ class RoutingTable:
         del self.table[router_id]
 
     def update_sched_update_time(
-        self, initial_time: Optional[datetime] = None
+        self, initial_time_arg: Optional[datetime] = None
     ) -> datetime:
         """
         Updates the scheduled time at which an update will be sent out for this
@@ -177,15 +177,16 @@ class RoutingTable:
         initial_time -- The initial time, as specified. Defaults to
         `datetime.now()`
         """
-        if initial_time is None:
-            initial_time = datetime.now()
+        initial_time = (
+            initial_time_arg if initial_time_arg is not None else datetime.now()
+        )
         self.sched_update_time = initial_time + timedelta(
             seconds=self.update_delta + randint(-5, 5)
         )
         return initial_time
 
     def set_triggered_update_time(
-        self, initial_time: Optional[datetime] = None
+        self, initial_time_arg: Optional[datetime] = None
     ) -> int:
         """
         Updates the triggered time at which an update will be sent out for
@@ -204,8 +205,9 @@ class RoutingTable:
         initial_time -- The initial time, as specified. Defaults to
         `datetime.now()`.
         """
-        if initial_time is None:
-            initial_time = datetime.now()
+        initial_time = (
+            initial_time_arg if initial_time_arg is not None else datetime.now()
+        )
         diff = randint(1, 5)
         diff_delta = timedelta(seconds=diff)
         self.triggered_update_time = initial_time + diff_delta
