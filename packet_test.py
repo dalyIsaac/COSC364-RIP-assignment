@@ -3,8 +3,12 @@ from io import StringIO
 from socket import AF_INET
 from unittest import TestCase, main
 
-from packet import (ResponsePacket, construct_packets, read_packet,
-                    validate_packet)
+from packet import (
+    ResponsePacket,
+    construct_packets,
+    read_packet,
+    validate_packet,
+)
 from routeentry import RouteEntry
 from routingtable import RoutingTable
 
@@ -27,19 +31,19 @@ def get_two_packets():
     packet1[2:4] = (0).to_bytes(2, "big")
     diff = 1
     for i in range(25):
-        if i + diff == 2:
-            diff += 1
+        # if i + diff == 2:
+        #     diff += 1
         packet1[i * 20 + 4 : i * 20 + 6] = AF_INET.to_bytes(2, "big")
         packet1[i * 20 + 8 : i * 20 + 12] = (i + diff).to_bytes(4, "big")
         packet1[i * 20 + 20 : i * 20 + 24] = (1).to_bytes(4, "big")
 
-    packet2 = bytearray(124)
+    packet2 = bytearray(144)
     packet2[0] = 2
     packet2[1] = 2
     packet2[2:4] = (0).to_bytes(2, "big")
-    for i in range(6):
+    for i in range(7):
         packet2[i * 20 + 4 : i * 20 + 6] = AF_INET.to_bytes(2, "big")
-        packet2[i * 20 + 8 : i * 20 + 12] = (i + 27).to_bytes(4, "big")
+        packet2[i * 20 + 8 : i * 20 + 12] = (i + 26).to_bytes(4, "big")
         packet2[i * 20 + 20 : i * 20 + 24] = (1).to_bytes(4, "big")
 
     return packet1, packet2
@@ -52,7 +56,7 @@ class TestPacketConstruction(TestCase):
                 packet[i],
                 val,
                 f"Iteration {iteration}. Failed on byte {i}. Expected: {val}. "
-                + "Received: {packet[i]}",
+                f"Received: {packet[i]}",
             )
 
     def test_single_entry(self):
@@ -77,8 +81,8 @@ class TestPacketConstruction(TestCase):
         """
         The routing table has two entries, where one entry was learnt from the
         router that the packet is going to be sent to. The packet being
-        produced should contain only one entry - the entry which wasn't
-        produced by the router the packet is being sent to.
+        produced should contain two entries, however the entry with the id
+        clash should have a metric of 16.
         """
         table_router_id = 1
         table = RoutingTable(table_router_id, 0, 0, 0)
@@ -87,13 +91,17 @@ class TestPacketConstruction(TestCase):
 
         packets = construct_packets(table, 3)
 
-        expected_packet = bytearray(24)
+        expected_packet = bytearray(44)
         expected_packet[0] = 2
         expected_packet[1] = 2
         expected_packet[2:4] = (1).to_bytes(2, "big")
         expected_packet[4:6] = AF_INET.to_bytes(2, "big")
         expected_packet[8:12] = (1).to_bytes(4, "big")
         expected_packet[20:24] = (1).to_bytes(4, "big")
+
+        expected_packet[20 + 4 : 20 + 6] = AF_INET.to_bytes(2, "big")
+        expected_packet[20 + 8 : 20 + 12] = (2).to_bytes(4, "big")
+        expected_packet[20 + 20 : 20 + 24] = (16).to_bytes(4, "big")
 
         self.assertEqual(len(packets), 1)
         packet = packets[0]
@@ -103,13 +111,13 @@ class TestPacketConstruction(TestCase):
     def test_two_entries_infinity(self):
         """
         Tests that a routing table with two entries, where one entry has a
-        metric of infinity, but is flagged, produces a packet with the two
-        entries inside.
+        metric of infinity, [OLD: but is flagged], produces a packet with
+        the two entries inside.
         """
         table = RoutingTable(0, 0, 0, 0)
         table.add_route(1, RouteEntry(0, 1, 2, 0, 0))
         table.add_route(2, RouteEntry(0, 16, 3, 0, 0))
-        table[2].flag = True
+        # table[2].flag = True
 
         packets = construct_packets(table, 1)
 
@@ -129,31 +137,31 @@ class TestPacketConstruction(TestCase):
         self.assertEqual(len(packet), len(expected_packet))
         self._test_single_packet(packet, expected_packet)
 
-    def test_two_entries_flag(self):
-        """
-        Tests that a routing table with two entries, where one entry has a
-        metric of infinity, and is not flagged, produces a packet with the
-        entry which isn't infinity inside.
-        """
-        table = RoutingTable(0, 0, 0, 0)
-        table.add_route(1, RouteEntry(0, 1, 2, 0, 0))
-        table.add_route(2, RouteEntry(0, 16, 3, 0, 0))
-        table[2].flag = False
+    # def test_two_entries_flag(self):
+    #     """
+    #     Tests that a routing table with two entries, where one entry has a
+    #     metric of infinity, and is not flagged, produces a packet with the
+    #     entry which isn't infinity inside.
+    #     """
+    #     table = RoutingTable(0, 0, 0, 0)
+    #     table.add_route(1, RouteEntry(0, 1, 2, 0, 0))
+    #     table.add_route(2, RouteEntry(0, 16, 3, 0, 0))
+    #     table[2].flag = False
 
-        packets = construct_packets(table, 3)
+    #     packets = construct_packets(table, 3)
 
-        expected_packet = bytearray(24)
-        expected_packet[0] = 2
-        expected_packet[1] = 2
-        expected_packet[2:4] = (0).to_bytes(2, "big")
-        expected_packet[4:6] = AF_INET.to_bytes(2, "big")
-        expected_packet[8:12] = (1).to_bytes(4, "big")
-        expected_packet[20:24] = (1).to_bytes(4, "big")
+    #     expected_packet = bytearray(24)
+    #     expected_packet[0] = 2
+    #     expected_packet[1] = 2
+    #     expected_packet[2:4] = (0).to_bytes(2, "big")
+    #     expected_packet[4:6] = AF_INET.to_bytes(2, "big")
+    #     expected_packet[8:12] = (1).to_bytes(4, "big")
+    #     expected_packet[20:24] = (1).to_bytes(4, "big")
 
-        self.assertEqual(len(packets), 1)
-        packet = packets[0]
-        self.assertEqual(len(packet), len(expected_packet))
-        self._test_single_packet(packet, expected_packet)
+    #     self.assertEqual(len(packets), 1)
+    #     packet = packets[0]
+    #     self.assertEqual(len(packet), len(expected_packet))
+    #     self._test_single_packet(packet, expected_packet)
 
     def test_multiple_packets(self):
         """
@@ -164,8 +172,9 @@ class TestPacketConstruction(TestCase):
         # Number of entries being sent out: 31
         table = RoutingTable(0, 0, 0, 0)
         table.add_route(1, RouteEntry(0, 1, 2, 0, 0))
-        table.add_route(2, RouteEntry(0, 16, 3, 0, 0))
-        table[2].flag = False
+        table.add_route(2, RouteEntry(0, 1, 3, 0, 0))
+        # table.add_route(2, RouteEntry(0, 16, 3, 0, 0))
+        # table[2].flag = False
         for i in range(30):
             table.add_route(i + 3, RouteEntry(0, 1, 2, 0, 0))
 
@@ -208,7 +217,7 @@ class TestPacketReading(TestCase):
         self.assertEqual(len(entries), 25)
 
         for i, (afi, router_id, metric) in enumerate(entries):
-            expected_router_id = i + 2 if i + 1 >= 2 else i + 1
+            expected_router_id = i + 1
             self.assertEqual(afi, AF_INET)
             self.assertEqual(router_id, expected_router_id)
             self.assertEqual(metric, 1)
@@ -280,7 +289,6 @@ class TestValidatePacket(TestCase):
         self.assertOutputEqual(
             "The packet has a version value of 1, instead of 2."
         )
-
 
 
 if __name__ == "__main__":

@@ -35,7 +35,7 @@ class RouteEntry:
     learned_from: int
 
     timeout_time: datetime
-    gc_time: Optional[datetime]
+    gc_time: Optional[datetime] = None
 
     def __init__(
         self,
