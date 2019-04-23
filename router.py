@@ -35,13 +35,13 @@ def create_table(
     table = RoutingTable(router_id, update_time, timeout_time, gc_time)
 
     for port, cost, neighbour_router_id in output_ports:
-        table.add_config_data(router_id, port, cost)
+        table.add_config_data(neighbour_router_id, port, cost)
 
     return table
 
 
 def startup(table: RoutingTable, output_sock: socket):
-    print(str(table))
+    print("Starting up...")
     for router_id in table.config_table:
         packets = construct_packets(table, router_id)
         for packet in packets:

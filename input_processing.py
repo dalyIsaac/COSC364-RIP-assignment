@@ -10,8 +10,11 @@ from routingtable import RoutingTable
 from validate_data import INFINITY, MAX_ID, MAX_METRIC, MIN_ID, MIN_METRIC
 
 
-def validate_entry(packet_entry: ResponseEntry) -> bool:
+def validate_entry(table: RoutingTable, packet_entry: ResponseEntry) -> bool:
     """Validates an individual router entry."""
+
+    if packet_entry.router_id == table.router_id:
+        return False
 
     # Checks the entry's AFI value
     if packet_entry.afi != AF_INET:
@@ -148,7 +151,7 @@ def process_entry(
     port: int,
     sock: socket,
 ):
-    if not validate_entry(packet_entry):
+    if not validate_entry(table, packet_entry):
         return
 
     # Update the metric
@@ -203,8 +206,8 @@ def input_processing(table: RoutingTable, sockets: List[socket]):
     The processing is the same, no matter why the Response was generated.
     """
     for packet, port, sock in get_packets(sockets):
-        if len(packet.entries) == 0:
-            add_discovered(table, packet, sock)
-        elif validate_packet(table, packet):
+        if validate_packet(table, packet):
             for entry in packet.entries:
                 process_entry(table, entry, packet, port, sock)
+        elif packet.sender_router_id in table.config_table:
+            add_discovered(table, packet, sock)
