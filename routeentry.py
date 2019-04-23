@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, Union
 
 
 class RouteEntry:
@@ -42,15 +42,29 @@ class RouteEntry:
         port: int,
         metric: int,
         next_address: int,
-        timeout_time: int,
+        timeout_time: Union[int, datetime],
         learned_from=-1,
     ):
         self.port = port
         self.metric = metric
         self.next_address = next_address
-        current_time = datetime.now()
-        self.timeout_time = current_time + timedelta(seconds=timeout_time)
+        if isinstance(timeout_time, int):
+            self.timeout_time = datetime.now() + timedelta(seconds=timeout_time)
+        else:
+            self.timeout_time = timeout_time
         self.learned_from = learned_from
+
+    def shallow_copy(self):
+        copy = RouteEntry(
+            self.port,
+            self.metric,
+            self.next_address,
+            self.timeout_time,
+            self.learned_from,
+        )
+        copy.flag = self.flag
+        copy.gc_time = self.gc_time
+        return copy
 
     def update_timeout_time(
         self, timeout_time: int, initial_time_arg: Optional[datetime] = None

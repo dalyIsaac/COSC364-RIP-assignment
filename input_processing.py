@@ -10,8 +10,11 @@ from routingtable import RoutingTable
 from validate_data import INFINITY, MAX_ID, MAX_METRIC, MIN_ID, MIN_METRIC
 
 
-def validate_entry(packet_entry: ResponseEntry) -> bool:
+def validate_entry(table: RoutingTable, packet_entry: ResponseEntry) -> bool:
     """Validates an individual router entry."""
+
+    if packet_entry.router_id == table.router_id:
+        return False
 
     # Checks the entry's AFI value
     if packet_entry.afi != AF_INET:
@@ -45,14 +48,13 @@ def add_route(
     table: RoutingTable,
     packet_entry: ResponseEntry,
     metric: int,
-    port: int,
     learned_from: int,
     sock: socket,
 ):
     """
     Adds a newly learned route to the routing table.
     """
-    actual_port = table.ports_lookup_table[learned_from]
+    actual_port = table.config_table[learned_from].port
     entry = RouteEntry(
         actual_port, metric, learned_from, table.timeout_delta, learned_from
     )
@@ -149,7 +151,7 @@ def process_entry(
     port: int,
     sock: socket,
 ):
-    if not validate_entry(packet_entry):
+    if not validate_entry(table, packet_entry):
         return
 
     # Update the metric
@@ -163,7 +165,7 @@ def process_entry(
         )
     else:
         add_route(
-            table, packet_entry, new_metric, port, packet.sender_router_id, sock
+            table, packet_entry, new_metric, packet.sender_router_id, sock
         )
 
 
@@ -190,6 +192,15 @@ def get_packets(
     return packets
 
 
+def add_discovered(table: RoutingTable, packet: ResponsePacket, sock: socket):
+    if packet.sender_router_id not in table.config_table:
+        print(f"router_id {packet.sender_router_id} is not in the config file.")
+        return
+    metric = table.config_table[packet.sender_router_id].cost
+    fake_packet_entry = ResponseEntry(AF_INET, packet.sender_router_id, metric)
+    add_route(table, fake_packet_entry, metric, packet.sender_router_id, sock)
+
+
 def input_processing(table: RoutingTable, sockets: List[socket]):
     """
     The processing is the same, no matter why the Response was generated.
@@ -198,3 +209,5 @@ def input_processing(table: RoutingTable, sockets: List[socket]):
         if validate_packet(table, packet):
             for entry in packet.entries:
                 process_entry(table, entry, packet, port, sock)
+        if packet.sender_router_id in table.config_table:
+            add_discovered(table, packet, sock)

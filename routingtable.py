@@ -1,9 +1,14 @@
 from datetime import datetime, timedelta
 from random import randint
 from time import sleep
-from typing import Dict, Iterator, Optional
+from typing import Dict, Iterator, Optional, NamedTuple
 
 from routeentry import RouteEntry
+
+
+class ConfigData(NamedTuple):
+    port: int
+    cost: int
 
 
 class RoutingTable:
@@ -15,7 +20,7 @@ class RoutingTable:
     table -- Contains the routing table, in the form of
     `{[key: router_id]: RouteEntry}`.
 
-    port_lookup - Contains router_id - port associations.
+    config_table - Contains information from the config file.
 
     router_id -- The router of this router.
 
@@ -32,7 +37,7 @@ class RoutingTable:
     """
 
     table: Dict[int, RouteEntry]
-    ports_lookup_table: Dict[int, int] = {}
+    config_table: Dict[int, ConfigData]
 
     sched_update_time: datetime
     triggered_update_time: Optional[datetime] = None
@@ -54,7 +59,7 @@ class RoutingTable:
         self.update_sched_update_time()
         self.timeout_delta = timeout_delta
         self.gc_delta = gc_delta
-        self.ports_lookup_table
+        self.config_table = {}
 
     def __len__(self):
         """Returns the number of items inside the routing table"""
@@ -161,8 +166,8 @@ class RoutingTable:
         `router_id`."""
         self.table[router_id] = route
 
-    def add_router_port(self, router_id: int, port: int):
-        self.ports_lookup_table[router_id] = port
+    def add_config_data(self, router_id: int, port: int, cost: int):
+        self.config_table[router_id] = ConfigData(port, cost)
 
     def remove_route(self, router_id: int) -> None:
         """
