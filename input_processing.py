@@ -186,7 +186,7 @@ def get_packets(
         packets.append((packet, port, sock))
         print(
             f"Received packet from router_id: {packet.sender_router_id} | "
-            f"input port: {port}"
+            f"input port: {port} at {datetime.now()}"
         )
 
     return packets
@@ -206,8 +206,21 @@ def input_processing(table: RoutingTable, sockets: List[socket]):
     The processing is the same, no matter why the Response was generated.
     """
     for packet, port, sock in get_packets(sockets):
+        router_id = packet.sender_router_id
         if validate_packet(table, packet):
             for entry in packet.entries:
                 process_entry(table, entry, packet, port, sock)
-        if packet.sender_router_id in table.config_table:
-            add_discovered(table, packet, sock)
+
+        if router_id in table.config_table:
+            if router_id not in table:
+                add_discovered(table, packet, sock)
+            elif table.config_table[router_id].cost <= table[router_id].metric:
+                add_discovered(table, packet, sock)
+            elif (
+                table[router_id].learned_from not in table
+                or table[table[router_id].learned_from].metric == INFINITY
+            ):
+                add_discovered(table, packet, sock)
+            else:
+                table[router_id].update_timeout_time(table.timeout_delta)
+    print(str(table))
