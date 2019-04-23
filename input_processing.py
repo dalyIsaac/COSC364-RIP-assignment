@@ -55,9 +55,7 @@ def add_route(
     Adds a newly learned route to the routing table.
     """
     actual_port = table.config_table[learned_from].port
-    entry = RouteEntry(
-        actual_port, metric, learned_from, table.timeout_delta, learned_from
-    )
+    entry = RouteEntry(actual_port, metric, table.timeout_delta, learned_from)
     entry.gc_time = None
     entry.flag = True
     table.add_route(packet_entry.router_id, entry)
