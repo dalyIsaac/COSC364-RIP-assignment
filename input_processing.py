@@ -85,7 +85,7 @@ def adopt_route(
     entry.
     """
     table_entry.metric = new_metric
-    table_entry.next_address = learned_from
+    table_entry.learned_from = learned_from
     table_entry.flag = True
     table_entry.learned_from = learned_from
     table_entry.triggered_update_time = None
@@ -118,7 +118,7 @@ def update_table(
     table_entry: RouteEntry = table[packet_entry.router_id]
 
     if (
-        learned_from == table_entry.next_address
+        learned_from == table_entry.learned_from
         and new_metric != table_entry.metric
     ) or new_metric < table_entry.metric:
         adopt_route(table, table_entry, new_metric, learned_from, sock)
@@ -128,7 +128,7 @@ def update_table(
             pool.submit(deletion_process, table)
     elif (
         new_metric == table_entry.metric
-        and learned_from != table_entry.next_address
+        and learned_from != table_entry.learned_from
     ):
         # Adding a check for `learned_from` means that the entry will not be
         # updated if its the same as the old entry.

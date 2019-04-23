@@ -14,9 +14,6 @@ class RouteEntry:
 
     metric -- The cost in total.
 
-    next_address - the router-id for the next-address along the path to the
-    destination.
-
     learned_from -- The router-id of the router from whom this route was
     learned from. `-1` if the router wasn't learned from anyone (i.e. learned
     from the config file on startup).
@@ -31,7 +28,6 @@ class RouteEntry:
     flag = False
     port: int
     metric: int
-    next_address: int
     learned_from: int
 
     timeout_time: datetime
@@ -41,13 +37,11 @@ class RouteEntry:
         self,
         port: int,
         metric: int,
-        next_address: int,
         timeout_time: Union[int, datetime],
         learned_from=-1,
     ):
         self.port = port
         self.metric = metric
-        self.next_address = next_address
         if isinstance(timeout_time, int):
             self.timeout_time = datetime.now() + timedelta(seconds=timeout_time)
         else:
@@ -58,7 +52,6 @@ class RouteEntry:
         copy = RouteEntry(
             self.port,
             self.metric,
-            self.next_address,
             self.timeout_time,
             self.learned_from,
         )

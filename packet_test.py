@@ -65,8 +65,8 @@ class TestPacketConstruction(TestCase):
         given router_id.
         """
         table = RoutingTable(0, 0, 0, 0)
-        # metric: 1, next_address: 2
-        table.add_route(1, RouteEntry(0, 1, 2, 0, 0))
+        # metric: 1, learned_from: 2
+        table.add_route(1, RouteEntry(0, 1, 0, 2))
 
         packets = construct_packets(table, 3)
 
@@ -86,8 +86,8 @@ class TestPacketConstruction(TestCase):
         """
         table_router_id = 1
         table = RoutingTable(table_router_id, 0, 0, 0)
-        table.add_route(1, RouteEntry(0, 1, 2, 0, 0))
-        table.add_route(2, RouteEntry(0, 2, 2, 0, 3))
+        table.add_route(1, RouteEntry(0, 1, 0, 0))
+        table.add_route(2, RouteEntry(0, 2, 0, 3))
 
         packets = construct_packets(table, 3)
 
@@ -115,8 +115,8 @@ class TestPacketConstruction(TestCase):
         the two entries inside.
         """
         table = RoutingTable(0, 0, 0, 0)
-        table.add_route(1, RouteEntry(0, 1, 2, 0, 0))
-        table.add_route(2, RouteEntry(0, 16, 3, 0, 0))
+        table.add_route(1, RouteEntry(0, 1, 0, 0))
+        table.add_route(2, RouteEntry(0, 16, 0, 0))
         # table[2].flag = True
 
         packets = construct_packets(table, 1)
@@ -144,8 +144,8 @@ class TestPacketConstruction(TestCase):
     #     entry which isn't infinity inside.
     #     """
     #     table = RoutingTable(0, 0, 0, 0)
-    #     table.add_route(1, RouteEntry(0, 1, 2, 0, 0))
-    #     table.add_route(2, RouteEntry(0, 16, 3, 0, 0))
+    #     table.add_route(1, RouteEntry(0, 1, 0, 0))
+    #     table.add_route(2, RouteEntry(0, 16, 0, 0))
     #     table[2].flag = False
 
     #     packets = construct_packets(table, 3)
@@ -171,12 +171,12 @@ class TestPacketConstruction(TestCase):
         # Number of entries inside the table: 32
         # Number of entries being sent out: 31
         table = RoutingTable(0, 0, 0, 0)
-        table.add_route(1, RouteEntry(0, 1, 2, 0, 0))
-        table.add_route(2, RouteEntry(0, 1, 3, 0, 0))
+        table.add_route(1, RouteEntry(0, 1, 0, 0))
+        table.add_route(2, RouteEntry(0, 1, 0, 0))
         # table.add_route(2, RouteEntry(0, 16, 3, 0, 0))
         # table[2].flag = False
         for i in range(30):
-            table.add_route(i + 3, RouteEntry(0, 1, 2, 0, 0))
+            table.add_route(i + 3, RouteEntry(0, 1, 0, 0))
 
         packets = construct_packets(table, 3)
         expected_packets = get_two_packets()
@@ -237,7 +237,7 @@ class TestValidatePacket(TestCase):
         self.table.add_route(
             router_id=2,
             route=RouteEntry(
-                port=4000, metric=2, next_address=3, timeout_time=60
+                port=4000, metric=2, timeout_time=60, learned_from=3
             ),
         )
 
