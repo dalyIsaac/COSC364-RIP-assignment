@@ -52,7 +52,7 @@ def read_config(filename):
                 print("multiple router-id lines")
                 break
 
-            router_id = int(values[0].strip())
+            router_id = int(values.strip())
 
         elif option == "input-ports":
             # check if we have already set input-ports

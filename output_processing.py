@@ -25,6 +25,9 @@ def _send_responses(table: RoutingTable, sock: socket, clear_flags=False):
         packets = construct_packets(table, router_id)
         for packet in packets:
             port = table[router_id].port
+            print(
+                f"Sending to router_id {router_id} port {port} at {datetime.now()}"
+            )
             send_response(sock, port, packet)
 
     if clear_flags:
