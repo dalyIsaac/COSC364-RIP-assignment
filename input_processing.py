@@ -210,6 +210,7 @@ def input_processing(table: RoutingTable, sockets: List[socket]):
         if validate_packet(table, packet):
             for entry in packet.entries:
                 process_entry(table, entry, packet, port, sock)
+
         if router_id in table.config_table:
             if router_id not in table:
                 add_discovered(table, packet, sock)
