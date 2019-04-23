@@ -215,6 +215,11 @@ def input_processing(table: RoutingTable, sockets: List[socket]):
                 add_discovered(table, packet, sock)
             elif table.config_table[router_id].cost <= table[router_id].metric:
                 add_discovered(table, packet, sock)
+            elif (
+                table[router_id].learned_from not in table
+                or table[table[router_id].learned_from].metric == INFINITY
+            ):
+                add_discovered(table, packet, sock)
             else:
                 table[router_id].update_timeout_time(table.timeout_delta)
     print(str(table))
