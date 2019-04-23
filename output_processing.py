@@ -75,7 +75,7 @@ def deletion_process(table: RoutingTable, sock: socket):
     now = datetime.now()  # Only calling it once minimises system time
     for router_id in table:
         entry: RouteEntry = table[router_id]
-        if hasattr(entry, "gc_time"):
+        if entry.gc_time is not None:
             gc_processing(table, router_id, entry, now)
         elif entry.timeout_time <= now:
             pool.submit(timeout_processing, table, entry, sock)
