@@ -3,7 +3,12 @@ from select import select
 from socket import AF_INET, socket
 from typing import List, Tuple
 
-from output_processing import deletion_process, pool, send_responses
+from output_processing import (
+    deletion_process,
+    pool,
+    send_responses,
+    timeout_processing,
+)
 from packet import ResponseEntry, ResponsePacket, read_packet, validate_packet
 from routeentry import RouteEntry
 from routingtable import RoutingTable
@@ -54,6 +59,7 @@ def add_route(
     """
     Adds a newly learned route to the routing table.
     """
+    print(f"Adding route {metric}")
     actual_port = table.config_table[learned_from].port
     entry = RouteEntry(actual_port, metric, table.timeout_delta, learned_from)
     entry.gc_time = None
@@ -68,6 +74,7 @@ def add_route(
     # send_responses(table, sock)
 
     if entry.metric == INFINITY:
+        timeout_processing(table, entry, sock)
         send_responses(table, sock)
 
 
@@ -82,6 +89,7 @@ def adopt_route(
     Adopts the newly received route, and updates the existing routing table
     entry.
     """
+    print(f"Adopting route {new_metric}")
     table_entry.metric = new_metric
     table_entry.learned_from = learned_from
     table_entry.flag = True

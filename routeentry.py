@@ -50,10 +50,7 @@ class RouteEntry:
 
     def shallow_copy(self):
         copy = RouteEntry(
-            self.port,
-            self.metric,
-            self.timeout_time,
-            self.learned_from,
+            self.port, self.metric, self.timeout_time, self.learned_from
         )
         copy.flag = self.flag
         copy.gc_time = self.gc_time
@@ -80,6 +77,7 @@ class RouteEntry:
             initial_time_arg if initial_time_arg is not None else datetime.now()
         )
         self.timeout_time = initial_time + timedelta(seconds=timeout_time)
+        self.gc_time = None
         return initial_time
 
     def set_garbage_collection_time(
