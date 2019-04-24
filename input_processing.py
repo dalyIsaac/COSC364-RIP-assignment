@@ -3,7 +3,7 @@ from select import select
 from socket import AF_INET, socket
 from typing import List, Tuple
 
-from output_processing import deletion_process, pool, send_responses
+from output_processing import deletion_process, pool
 from packet import ResponseEntry, ResponsePacket, read_packet, validate_packet
 from routeentry import RouteEntry
 from routingtable import RoutingTable
@@ -54,6 +54,10 @@ def add_route(
     """
     Adds a newly learned route to the routing table.
     """
+    if packet_entry.metric == INFINITY:
+        return
+
+    print(f"Adding route {metric}")
     actual_port = table.config_table[learned_from].port
     entry = RouteEntry(actual_port, metric, table.timeout_delta, learned_from)
     entry.gc_time = None
@@ -67,9 +71,6 @@ def add_route(
     # Thus, the following line is commented out, and the success lines added.
     # send_responses(table, sock)
 
-    if entry.metric == INFINITY:
-        send_responses(table, sock)
-
 
 def adopt_route(
     table: RoutingTable,
@@ -77,11 +78,13 @@ def adopt_route(
     new_metric: int,
     learned_from: int,
     sock: socket,
+    router_id: int,
 ):
     """
     Adopts the newly received route, and updates the existing routing table
     entry.
     """
+    print(f"Adopting route {new_metric}")
     table_entry.metric = new_metric
     table_entry.learned_from = learned_from
     table_entry.flag = True
@@ -97,7 +100,8 @@ def adopt_route(
 
     if new_metric == INFINITY:
         # The following will eventually cause a triggered update.
-        pool.submit(deletion_process, table)
+        print("About to go into deletion process")
+        pool.submit(deletion_process, table, sock, router_id)
     else:
         table_entry.update_timeout_time(table.timeout_delta)
 
@@ -119,7 +123,14 @@ def update_table(
         learned_from == table_entry.learned_from
         and new_metric != table_entry.metric
     ) or new_metric < table_entry.metric:
-        adopt_route(table, table_entry, new_metric, learned_from, sock)
+        adopt_route(
+            table,
+            table_entry,
+            new_metric,
+            learned_from,
+            sock,
+            packet_entry.router_id,
+        )
     elif new_metric == INFINITY:
         # nothing happens if the entry's existing metric is `INFINITY`
         if table_entry.metric != INFINITY:
@@ -136,7 +147,14 @@ def update_table(
         time_diff: timedelta = table_entry.timeout_time - datetime.now()
         half_time = table.timeout_delta / 2
         if time_diff.seconds >= half_time:
-            adopt_route(table, table_entry, new_metric, learned_from, sock)
+            adopt_route(
+                table,
+                table_entry,
+                new_metric,
+                learned_from,
+                sock,
+                packet_entry.router_id,
+            )
     else:
         # The packet_entry is no better than the current route
         pass

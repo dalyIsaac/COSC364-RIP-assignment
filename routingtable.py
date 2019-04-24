@@ -90,7 +90,7 @@ class RoutingTable:
 
     def _str_headers(self, router_id: int) -> str:
         output = (
-            "| router_id | port | metric | learned_from | flag  "
+            "| self_id | router_id | port | metric | learned_from | flag  "
             + " | "
             + "timeout_time".ljust(26)
             + " | "
@@ -110,6 +110,8 @@ class RoutingTable:
         e = self.table[router_id]
         output = (
             "| "
+            + str(self.router_id).ljust(7)
+            + " | "
             + str(router_id).ljust(9)
             + " | "
             + str(e.port).ljust(4)
