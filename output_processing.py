@@ -1,6 +1,7 @@
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from socket import socket
+from typing import Optional
 
 from packet import construct_packets
 from routeentry import RouteEntry
@@ -71,15 +72,18 @@ def gc_processing(
         del table[router_id]
 
 
-def deletion_process(table: RoutingTable, sock: socket):
+def deletion_process(
+    table: RoutingTable, sock: socket, new_infinite_id: Optional[int] = None
+):
     """
     Handles the timeout and garbage collection timer processing for the
     routing table.
     """
+    print("In deletion process")
     now = datetime.now()  # Only calling it once minimises system time
     for router_id in table:
         entry: RouteEntry = table[router_id]
         if entry.gc_time is not None:
             gc_processing(table, router_id, entry, now)
-        elif entry.timeout_time <= now:
+        elif entry.timeout_time <= now or router_id == new_infinite_id:
             pool.submit(timeout_processing, table, entry, sock)
