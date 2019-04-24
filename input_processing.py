@@ -3,12 +3,7 @@ from select import select
 from socket import AF_INET, socket
 from typing import List, Tuple
 
-from output_processing import (
-    deletion_process,
-    pool,
-    send_responses,
-    timeout_processing,
-)
+from output_processing import deletion_process, pool
 from packet import ResponseEntry, ResponsePacket, read_packet, validate_packet
 from routeentry import RouteEntry
 from routingtable import RoutingTable
