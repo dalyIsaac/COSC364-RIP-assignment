@@ -47,19 +47,21 @@ def validate_entry(table: RoutingTable, packet_entry: ResponseEntry) -> bool:
 def add_route(
     table: RoutingTable,
     packet_entry: ResponseEntry,
-    metric: int,
+    new_metric: int,
     learned_from: int,
     sock: socket,
 ):
     """
     Adds a newly learned route to the routing table.
     """
-    if packet_entry.metric == INFINITY:
+    if new_metric == INFINITY:
         return
 
-    print(f"Adding route {metric}")
+    print(f"Adding route {new_metric}")
     actual_port = table.config_table[learned_from].port
-    entry = RouteEntry(actual_port, metric, table.timeout_delta, learned_from)
+    entry = RouteEntry(
+        actual_port, new_metric, table.timeout_delta, learned_from
+    )
     entry.gc_time = None
     entry.flag = True
     table.add_route(packet_entry.router_id, entry)
@@ -119,6 +121,9 @@ def update_table(
     """
     table_entry: RouteEntry = table[packet_entry.router_id]
 
+    if learned_from == table_entry.learned_from and new_metric != INFINITY:
+        table_entry.update_timeout_time(table.timeout_delta)
+
     if (
         learned_from == table_entry.learned_from
         and new_metric != table_entry.metric
@@ -134,7 +139,7 @@ def update_table(
     elif new_metric == INFINITY:
         # nothing happens if the entry's existing metric is `INFINITY`
         if table_entry.metric != INFINITY:
-            pool.submit(deletion_process, table)
+            pool.submit(deletion_process, table, packet_entry.router_id)
     elif (
         new_metric == table_entry.metric
         and learned_from != table_entry.learned_from

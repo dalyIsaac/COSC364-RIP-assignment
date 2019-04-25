@@ -23,14 +23,15 @@ def send_response(sock: socket, port: int, packet: bytearray):
 def _send_responses(table: RoutingTable, sock: socket, clear_flags=False):
     print(str(table))
     for router_id in table:
-        packets = construct_packets(table, router_id)
-        for packet in packets:
-            port = table[router_id].port
-            print(
-                f"Sending to router_id {router_id} port {port} "
-                f"at {datetime.now()}"
-            )
-            send_response(sock, port, packet)
+        if router_id in table.config_table:
+            packets = construct_packets(table, router_id)
+            port = table.config_table[router_id].port
+            for packet in packets:
+                print(
+                    f"Sending to router_id {router_id} port {port} "
+                    f"at {datetime.now()}"
+                )
+                send_response(sock, port, packet)
 
     if clear_flags:
         for router_id in table:
