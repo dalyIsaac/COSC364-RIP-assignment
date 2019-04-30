@@ -48,7 +48,7 @@ def add_route(
     table: RoutingTable,
     packet_entry: ResponseEntry,
     new_metric: int,
-    learned_from: int,
+    next_hop: int,
     sock: socket,
 ):
     """
@@ -58,9 +58,9 @@ def add_route(
         return
 
     print(f"Adding route {new_metric}")
-    actual_port = table.config_table[learned_from].port
+    actual_port = table.config_table[next_hop].port
     entry = RouteEntry(
-        actual_port, new_metric, table.timeout_delta, learned_from
+        actual_port, new_metric, table.timeout_delta, next_hop
     )
     entry.gc_time = None
     entry.flag = True
@@ -78,7 +78,7 @@ def adopt_route(
     table: RoutingTable,
     table_entry: RouteEntry,
     new_metric: int,
-    learned_from: int,
+    next_hop: int,
     sock: socket,
     router_id: int,
 ):
@@ -88,9 +88,9 @@ def adopt_route(
     """
     print(f"Adopting route {new_metric}")
     table_entry.metric = new_metric
-    table_entry.learned_from = learned_from
+    table_entry.next_hop = next_hop
     table_entry.flag = True
-    table_entry.learned_from = learned_from
+    table_entry.next_hop = next_hop
     table_entry.triggered_update_time = None
 
     # NOTE: As per the assignment spec, "implement triggered updates when
@@ -112,7 +112,7 @@ def update_table(
     table: RoutingTable,
     packet_entry: ResponseEntry,
     new_metric: int,
-    learned_from: int,
+    next_hop: int,
     sock: socket,
 ):
     """
@@ -121,18 +121,18 @@ def update_table(
     """
     table_entry: RouteEntry = table[packet_entry.router_id]
 
-    if learned_from == table_entry.learned_from and new_metric != INFINITY:
+    if next_hop == table_entry.next_hop and new_metric != INFINITY:
         table_entry.update_timeout_time(table.timeout_delta)
 
     if (
-        learned_from == table_entry.learned_from
+        next_hop == table_entry.next_hop
         and new_metric != table_entry.metric
     ) or new_metric < table_entry.metric:
         adopt_route(
             table,
             table_entry,
             new_metric,
-            learned_from,
+            next_hop,
             sock,
             packet_entry.router_id,
         )
@@ -142,9 +142,9 @@ def update_table(
             pool.submit(deletion_process, table, packet_entry.router_id)
     elif (
         new_metric == table_entry.metric
-        and learned_from != table_entry.learned_from
+        and next_hop != table_entry.next_hop
     ):
-        # Adding a check for `learned_from` means that the entry will not be
+        # Adding a check for `next_hop` means that the entry will not be
         # updated if its the same as the old entry.
 
         # If the timeout for the existing route is at least halfway to the
@@ -156,7 +156,7 @@ def update_table(
                 table,
                 table_entry,
                 new_metric,
-                learned_from,
+                next_hop,
                 sock,
                 packet_entry.router_id,
             )
@@ -206,8 +206,9 @@ def get_packets(
         packet = read_packet(raw_packet)
         packets.append((packet, port, sock))
         print(
+            f"{datetime.now()}: "
             f"Received packet from router_id: {packet.sender_router_id} | "
-            f"input port: {port} at {datetime.now()}"
+            f"input port {port}"
         )
 
     return packets
@@ -238,8 +239,8 @@ def input_processing(table: RoutingTable, sockets: List[socket]):
             elif table.config_table[router_id].cost <= table[router_id].metric:
                 add_discovered(table, packet, sock)
             elif (
-                table[router_id].learned_from not in table
-                or table[table[router_id].learned_from].metric == INFINITY
+                table[router_id].next_hop not in table
+                or table[table[router_id].next_hop].metric == INFINITY
             ):
                 add_discovered(table, packet, sock)
             else:

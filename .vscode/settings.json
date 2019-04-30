@@ -1,10 +1,10 @@
 {
   "editor.formatOnSave": true,
   "editor.rulers": [120],
-  "python.unitTest.pyTestEnabled": false,
-  "python.unitTest.unittestEnabled": true,
-  "python.unitTest.nosetestsEnabled": false,
-  "python.unitTest.unittestArgs": ["-v", "-s", ".", "-p", "*_test.py"],
+  "python.testing.pyTestEnabled": false,
+  "python.testing.unittestEnabled": true,
+  "python.testing.nosetestsEnabled": false,
+  "python.testing.unittestArgs": ["-v", "-s", ".", "-p", "*_test.py"],
   "python.linting.enabled": true,
   "python.linting.flake8Enabled": true,
   "python.linting.flake8Args": [

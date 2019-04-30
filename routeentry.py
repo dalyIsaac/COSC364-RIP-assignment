@@ -14,7 +14,7 @@ class RouteEntry:
 
     metric -- The cost in total.
 
-    learned_from -- The router-id of the router from whom this route was
+    next_hop -- The router-id of the router from whom this route was
     learned from. `-1` if the router wasn't learned from anyone (i.e. learned
     from the config file on startup).
 
@@ -28,7 +28,7 @@ class RouteEntry:
     flag = False
     port: int
     metric: int
-    learned_from: int
+    next_hop: int
 
     timeout_time: datetime
     gc_time: Optional[datetime] = None
@@ -38,7 +38,7 @@ class RouteEntry:
         port: int,
         metric: int,
         timeout_time: Union[int, datetime],
-        learned_from=-1,
+        next_hop=-1,
     ):
         self.port = port
         self.metric = metric
@@ -46,11 +46,11 @@ class RouteEntry:
             self.timeout_time = datetime.now() + timedelta(seconds=timeout_time)
         else:
             self.timeout_time = timeout_time
-        self.learned_from = learned_from
+        self.next_hop = next_hop
 
     def shallow_copy(self):
         copy = RouteEntry(
-            self.port, self.metric, self.timeout_time, self.learned_from
+            self.port, self.metric, self.timeout_time, self.next_hop
         )
         copy.flag = self.flag
         copy.gc_time = self.gc_time

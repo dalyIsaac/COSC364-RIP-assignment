@@ -28,8 +28,8 @@ def _send_responses(table: RoutingTable, sock: socket, clear_flags=False):
             port = table.config_table[router_id].port
             for packet in packets:
                 print(
+                    f"{datetime.now()}: "
                     f"Sending to router_id {router_id} port {port} "
-                    f"at {datetime.now()}"
                 )
                 send_response(sock, port, packet)
 

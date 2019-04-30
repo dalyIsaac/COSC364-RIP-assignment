@@ -65,7 +65,7 @@ class TestPacketConstruction(TestCase):
         given router_id.
         """
         table = RoutingTable(0, 0, 0, 0)
-        # metric: 1, learned_from: 2
+        # metric: 1, next_hop: 2
         table.add_route(1, RouteEntry(0, 1, 0, 2))
 
         packets = construct_packets(table, 3)
@@ -237,7 +237,7 @@ class TestValidatePacket(TestCase):
         self.table.add_route(
             router_id=2,
             route=RouteEntry(
-                port=4000, metric=2, timeout_time=60, learned_from=3
+                port=4000, metric=2, timeout_time=60, next_hop=3
             ),
         )
 

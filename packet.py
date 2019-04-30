@@ -39,7 +39,7 @@ def get_next_packet_entries(table: RoutingTable, dest_router_id: int):
     entries = []
     for current_router_id in table:
         route: RouteEntry = table[current_router_id]
-        if route.learned_from == dest_router_id:
+        if route.next_hop == dest_router_id:
             route = route.shallow_copy()
             route.metric = INFINITY
 
