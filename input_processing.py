@@ -45,6 +45,7 @@ def validate_entry(table: RoutingTable, packet_entry: ResponseEntry) -> bool:
         )
         return False
 
+    # If all the checks pass, then return `True`
     return True
 
 
@@ -55,13 +56,14 @@ def add_route(
     next_hop: int,
     sock: socket,
 ):
-    """
-    Adds a newly learned route to the routing table.
-    """
+    """Adds a newly learned route to the routing table."""
     if new_metric == INFINITY:
+        # Don't add routes with costs of infinity to the database - there's
+        # no point adding routes that you cannot reach.
         return
 
     logger(f"Adding route {new_metric}", is_debug=True)
+
     actual_port = table.config_table[next_hop].port
     entry = RouteEntry(actual_port, new_metric, table.timeout_delta, next_hop)
     entry.gc_time = None
@@ -89,6 +91,7 @@ def adopt_route(
     entry.
     """
     logger(f"Adopting route {new_metric}", is_debug=True)
+
     table_entry.metric = new_metric
     table_entry.next_hop = next_hop
     table_entry.flag = True
@@ -170,7 +173,9 @@ def process_entry(
     port: int,
     sock: socket,
 ):
+    """Processes a single entry from a received packet."""
     if not validate_entry(table, packet_entry):
+        # Ignores invalid entries
         return
 
     # Update the metric
@@ -191,7 +196,12 @@ def process_entry(
 def get_packets(
     sockets: List[socket]
 ) -> List[Tuple[ResponsePacket, int, socket]]:
-    """Reads received packets from the input ports/sockets."""
+    """
+    Gets a tuple of the received packets from the input sockets, and their
+    associated port numbers and sockets.
+
+    Returns a list of tuples, where each tuple is (ResponsePacket, port, sock).
+    """
     read: List[socket]
     read, _, _ = select(sockets, [], [], 1)
 
@@ -199,7 +209,7 @@ def get_packets(
 
     for sock in read:
         _, port = sock.getsockname()
-        # bigger than the maximum packet size
+        # The buffer size is bigger than the maximum packet size.
         raw_packet, client_address = sock.recvfrom(1024)
         packet = read_packet(raw_packet)
         packets.append((packet, port, sock))
@@ -213,6 +223,10 @@ def get_packets(
 
 
 def add_discovered(table: RoutingTable, packet: ResponsePacket, sock: socket):
+    """
+    Adds entries discovered implicitly from the packet itself into the routing
+    table.
+    """
     if packet.sender_router_id not in table.config_table:
         logger(
             f"router_id {packet.sender_router_id} is not in "
@@ -220,7 +234,11 @@ def add_discovered(table: RoutingTable, packet: ResponsePacket, sock: socket):
             is_debug=True,
         )
         return
+
     metric = table.config_table[packet.sender_router_id].cost
+    # The idea is generally the same as adding a new route into the table, even
+    # if updating an entry, because we'll want to completely wipe the entry and
+    # timers.
     fake_packet_entry = ResponseEntry(AF_INET, packet.sender_router_id, metric)
     add_route(table, fake_packet_entry, metric, packet.sender_router_id, sock)
 
@@ -235,16 +253,27 @@ def input_processing(table: RoutingTable, sockets: List[socket]):
             for entry in packet.entries:
                 process_entry(table, entry, packet, port, sock)
 
+        # The following adds entries if the packet sender's `router_id` is
+        # inside the config file.
         if router_id in table.config_table:
             if router_id not in table:
+                # If the sender's `router_id` isn't in the routing table, add
+                # it.
                 add_discovered(table, packet, sock)
             elif table.config_table[router_id].cost <= table[router_id].metric:
+                # Actually updates the entry. The underlying idea is the same
+                # as adding a newly discovered route.
                 add_discovered(table, packet, sock)
             elif (
                 table[router_id].next_hop not in table
                 or table[table[router_id].next_hop].metric == INFINITY
             ):
+                # Let the next_hop for the router be R. If R isn't in the
+                # routing table, or if R has a metric of infinity, update
+                # the entry with the information inferred from the packet.
                 add_discovered(table, packet, sock)
             else:
+                # There's no changes here, thus update the timeout timer.
                 table[router_id].update_timeout_time(table.timeout_delta)
+
     logger(str(table))
