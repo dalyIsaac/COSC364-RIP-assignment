@@ -46,9 +46,14 @@ def read_config(filename):
     output_ports = None
     timers = None
 
-    for line in f.readlines():
-        option = line.split(" ")[0].strip()
-        values = " ".join(line.split(" ")[1:])
+    # read whole line
+    for line in f.readlines():  # iterate through the lines in file
+        option = line.split(" ")[
+            0
+        ].strip()  # if line starts with whitespce strip line
+        values = " ".join(
+            line.split(" ")[1:]
+        )  # join lines togther to just have text
         if option == "router-id":
             if router_id is not None:
                 logger("multiple router-id lines")
@@ -63,10 +68,12 @@ def read_config(filename):
                 break
 
             input_ports = []
-            parts = values.split(",")
-            for port_str in parts:
-                port = int(port_str.strip())
-                input_ports.append(port)
+            parts = values.split(
+                ","
+            )  # seperate the line into parts, using comma
+            for port_str in parts:  # iterate through the parts
+                port = int(port_str.strip())  # remove whitespace
+                input_ports.append(port)  # append to list
 
         elif option == "output-ports":
             if output_ports is not None:
@@ -77,7 +84,9 @@ def read_config(filename):
             parts = values.split(",")
             for part in parts:
                 part = part.strip()
-                (port_str, cost, curr_id) = part.split("-")
+                (port_str, cost, curr_id) = part.split(
+                    "-"
+                )  # further split by hyphen
                 port_str = int(port_str)
                 cost = int(cost)
                 curr_id = int(curr_id)  # fixed error here
