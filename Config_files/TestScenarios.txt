@@ -76,7 +76,7 @@ R5 has direct connection to R7 and direct connection to R11.
 R11 has direct connection to R7 and direct connection to R5.
 R7 has direct connections to R11 and R5.
 So a simple network ring of three routers.
-All link costs are equal.
+All link costs are 8.
     B
 Close R5
 Wait for network to re-converge.
@@ -109,8 +109,12 @@ Notifications of dead time, garbage collection timers, routing table changes.
 Fnal routing table:
 As per A 
 
+Test case 4
+Repeat Test 3 with links costs of 6 
+Expect to converge with 6, tables may include a cost of 12 as they transition
+Config files are R5a, R7a, R11a
 
-Test Case 4
+Test Case 5
 Process:
     A
 Start three router instances with config files R13, R17 and R19
@@ -151,7 +155,7 @@ final routing table:
 As per A.
 
 
-Test Case 5
+Test Case 6
 Process:
     A
 Start three router instances with config files R23, R29 and R31
@@ -207,7 +211,29 @@ final routing table:
 as per A.
 
 
-Test Case 6
+Test case 7
+repeat Test case 6 with an additonal router connected to R31
+set costs to 2
+Config files are R23a, R29a, R31a, R37a
+Expect:
+R23: 29(29,2), 31(29,4), 37(29,6)
+R29: 23(23,2), 31(31,2), 37(31,4)
+R31: 23(29,4), 29(29,4), 37(37,2)
+R37: 23(31,6), 29(31,4), 31(31,2)
+
+
+Test case 8
+repeat Test case 7 with an additonal router connected to R31
+set costs to 6 
+Config files are R23b, R29b, R31b, R37b
+Expect: R23a has no entry for R37a, R37a has no entry for R23a.
+R23: 29(29,6), 31(29,12)
+R29: 23(23,6), 31(31,4), 37(31,12)
+R31: 23(29,12), 29(29,6), 37(37,6)
+R37: 29(31,12), 31(31,6)
+
+
+Test Case 9
 As per example in assignment specification - Bring it on!
 Process
     A
