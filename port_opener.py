@@ -31,6 +31,8 @@
 import socket
 from port_closer import port_closer
 
+from routerbase import logger
+
 
 def port_opener(input_ports):
 
@@ -45,14 +47,14 @@ def port_opener(input_ports):
             # new_socket.setblocking(0)
             new_socket.bind(("localhost", a_port))
 
-            print("Opened socket / port, ", new_socket, "/", a_port)
+            logger("Opened socket / port, ", new_socket, "/", a_port)
 
             socket_list.append(new_socket)
 
         return socket_list
 
     except OSError:
-        print(f"The port {a_port} is already in use. Please pick another one.")
+        logger(f"The port {a_port} is already in use. Please pick another one.")
         port_closer(socket_list)
         return None
 
@@ -62,4 +64,4 @@ if __name__ == "__main__":
     # input ports
     input_ports = (3001, 4001, 5001)
     socket_list = port_opener(input_ports)
-    print(socket_list)
+    logger(socket_list)

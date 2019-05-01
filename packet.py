@@ -2,6 +2,7 @@ from socket import AF_INET
 from typing import List, NamedTuple
 
 from routeentry import RouteEntry
+from routerbase import logger
 from routingtable import RoutingTable
 from validate_data import INFINITY
 
@@ -135,34 +136,39 @@ def validate_packet(table: RoutingTable, packet: ResponsePacket):
     """
     # Checks whether the router_id belongs to the router itself
     if table.router_id == packet.sender_router_id:
-        print(
+        logger(
             f"The packet's router_id of {packet.sender_router_id} illegally "
-            + "matches the router_id of this router."
+            + "matches the router_id of this router.",
+            is_debug=True,
         )
         return False
 
     # Checks whether the router_id is from a valid neighbour
     if packet.sender_router_id not in table.neighbours():
-        print(
+        logger(
             f"Packet received from router_id {packet.sender_router_id}, which "
-            "is not a neighbour of this router."
+            "is not a neighbour of this router.",
+            is_debug=True,
         )
-        print(
+        logger(
             f"Current neighbours of this router {table.router_id} are "
-            f"{[i for i in table.neighbours()]}."
+            f"{[i for i in table.neighbours()]}.",
+            is_debug=True,
         )
         return False
 
     # Checks that the command is valid
     if packet.command != 2:
-        print(
-            f"The packet has a command value of {packet.command}, instead of 2."
+        logger(
+            f"The packet has a command value of {packet.command}, instead of 2.",
+            is_debug=True,
         )
         return False
 
     if packet.version != 2:
-        print(
-            f"The packet has a version value of {packet.version}, instead of 2."
+        logger(
+            f"The packet has a version value of {packet.version}, instead of 2.",
+            is_debug=True,
         )
         return False
 

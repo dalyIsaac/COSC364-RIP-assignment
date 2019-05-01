@@ -1,14 +1,12 @@
-from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from socket import socket
 from typing import Optional
 
 from packet import construct_packets
 from routeentry import RouteEntry
+from routerbase import logger, pool
 from routingtable import RoutingTable
 from validate_data import INFINITY
-
-pool = ThreadPoolExecutor()
 
 
 def send_response(sock: socket, port: int, packet: bytearray):
@@ -21,15 +19,15 @@ def send_response(sock: socket, port: int, packet: bytearray):
 
 
 def _send_responses(table: RoutingTable, sock: socket, clear_flags=False):
-    print(str(table))
+    logger(str(table))
     for router_id in table:
         if router_id in table.config_table:
             packets = construct_packets(table, router_id)
             port = table.config_table[router_id].port
             for packet in packets:
-                print(
-                    f"{datetime.now()}: "
-                    f"Sending to router_id {router_id} port {port} "
+                logger(
+                    f"Sending to router_id {router_id} port {port} ",
+                    is_debug=True,
                 )
                 send_response(sock, port, packet)
 
@@ -80,7 +78,7 @@ def deletion_process(
     Handles the timeout and garbage collection timer processing for the
     routing table.
     """
-    print("In deletion process")
+    logger("In deletion process", is_debug=True)
     now = datetime.now()  # Only calling it once minimises system time
     for router_id in table:
         entry: RouteEntry = table[router_id]

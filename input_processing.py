@@ -6,6 +6,7 @@ from typing import List, Tuple
 from output_processing import deletion_process, pool
 from packet import ResponseEntry, ResponsePacket, read_packet, validate_packet
 from routeentry import RouteEntry
+from routerbase import logger
 from routingtable import RoutingTable
 from validate_data import INFINITY, MAX_ID, MAX_METRIC, MIN_ID, MIN_METRIC
 
@@ -18,26 +19,29 @@ def validate_entry(table: RoutingTable, packet_entry: ResponseEntry) -> bool:
 
     # Checks the entry's AFI value
     if packet_entry.afi != AF_INET:
-        print(
+        logger(
             f"The value {packet_entry.afi} for AFI does not match the "
-            f"expected value of AF_INET = {AF_INET}."
+            f"expected value of AF_INET = {AF_INET}.",
+            is_debug=True,
         )
         return False
 
     # Checks for the router_id
     if packet_entry.router_id < MIN_ID or packet_entry.router_id > MAX_ID:
-        print(
+        logger(
             f"The entry's router id of {packet_entry.router_id} should be an "
-            f"integer between {MIN_ID} and {MAX_ID}, inclusive."
+            f"integer between {MIN_ID} and {MAX_ID}, inclusive.",
+            is_debug=True,
         )
         return False
 
     # Checks that the entry's metric is between the expected minimum and
     # maximum metric.
     if packet_entry.metric < MIN_METRIC or packet_entry.metric > MAX_METRIC:
-        print(
+        logger(
             f"The entry's metric of {packet_entry.metric} was not between the "
-            f"expected range of {MIN_METRIC} and {MAX_METRIC}, inclusive."
+            f"expected range of {MIN_METRIC} and {MAX_METRIC}, inclusive.",
+            is_debug=True,
         )
         return False
 
@@ -57,11 +61,9 @@ def add_route(
     if new_metric == INFINITY:
         return
 
-    print(f"Adding route {new_metric}")
+    logger(f"Adding route {new_metric}", is_debug=True)
     actual_port = table.config_table[next_hop].port
-    entry = RouteEntry(
-        actual_port, new_metric, table.timeout_delta, next_hop
-    )
+    entry = RouteEntry(actual_port, new_metric, table.timeout_delta, next_hop)
     entry.gc_time = None
     entry.flag = True
     table.add_route(packet_entry.router_id, entry)
@@ -86,7 +88,7 @@ def adopt_route(
     Adopts the newly received route, and updates the existing routing table
     entry.
     """
-    print(f"Adopting route {new_metric}")
+    logger(f"Adopting route {new_metric}", is_debug=True)
     table_entry.metric = new_metric
     table_entry.next_hop = next_hop
     table_entry.flag = True
@@ -102,7 +104,7 @@ def adopt_route(
 
     if new_metric == INFINITY:
         # The following will eventually cause a triggered update.
-        print("About to go into deletion process")
+        logger("About to go into deletion process", is_debug=True)
         pool.submit(deletion_process, table, sock, router_id)
     else:
         table_entry.update_timeout_time(table.timeout_delta)
@@ -125,8 +127,7 @@ def update_table(
         table_entry.update_timeout_time(table.timeout_delta)
 
     if (
-        next_hop == table_entry.next_hop
-        and new_metric != table_entry.metric
+        next_hop == table_entry.next_hop and new_metric != table_entry.metric
     ) or new_metric < table_entry.metric:
         adopt_route(
             table,
@@ -140,10 +141,7 @@ def update_table(
         # nothing happens if the entry's existing metric is `INFINITY`
         if table_entry.metric != INFINITY:
             pool.submit(deletion_process, table, packet_entry.router_id)
-    elif (
-        new_metric == table_entry.metric
-        and next_hop != table_entry.next_hop
-    ):
+    elif new_metric == table_entry.metric and next_hop != table_entry.next_hop:
         # Adding a check for `next_hop` means that the entry will not be
         # updated if its the same as the old entry.
 
@@ -205,10 +203,10 @@ def get_packets(
         raw_packet, client_address = sock.recvfrom(1024)
         packet = read_packet(raw_packet)
         packets.append((packet, port, sock))
-        print(
-            f"{datetime.now()}: "
+        logger(
             f"Received packet from router_id: {packet.sender_router_id} | "
-            f"input port {port}"
+            f"input port {port}",
+            is_debug=True,
         )
 
     return packets
@@ -216,7 +214,11 @@ def get_packets(
 
 def add_discovered(table: RoutingTable, packet: ResponsePacket, sock: socket):
     if packet.sender_router_id not in table.config_table:
-        print(f"router_id {packet.sender_router_id} is not in the config file.")
+        logger(
+            f"router_id {packet.sender_router_id} is not in "
+            "the config file.",
+            is_debug=True,
+        )
         return
     metric = table.config_table[packet.sender_router_id].cost
     fake_packet_entry = ResponseEntry(AF_INET, packet.sender_router_id, metric)
@@ -245,4 +247,4 @@ def input_processing(table: RoutingTable, sockets: List[socket]):
                 add_discovered(table, packet, sock)
             else:
                 table[router_id].update_timeout_time(table.timeout_delta)
-    print(str(table))
+    logger(str(table))

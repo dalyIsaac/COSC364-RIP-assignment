@@ -18,6 +18,8 @@
 #   Removed unnecessary imports
 #########################################################
 
+from routerbase import logger
+
 
 def port_closer(socket_list):
 
@@ -26,7 +28,7 @@ def port_closer(socket_list):
             name = a_socket.getsockname()
             a_socket.close()
 
-            print("Closed socket / port, ", a_socket, "/", name)
+            logger("Closed socket / port, ", a_socket, "/", name)
 
         except (Exception):
             return 1
@@ -40,7 +42,7 @@ if __name__ == "__main__":
     # open input ports
     input_ports = (3001, 4001, 5001)
     socket_list = port_opener(input_ports)
-    print(socket_list)
+    logger(socket_list)
 
     # input ports
     port_closer(socket_list)

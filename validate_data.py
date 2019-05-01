@@ -51,6 +51,8 @@
 # import sys
 # import os
 
+from routerbase import logger
+
 # Router ID limits
 MIN_ID = 1
 MAX_ID = 64000
@@ -88,7 +90,7 @@ def validate_data(router_id, input_ports, output_ports, timers):
             id_error = 1
 
         if id_error == 1:
-            print("Router ID Configuration Error")
+            logger("Router ID Configuration Error")
             return False
 
     # Check input ports
@@ -108,7 +110,7 @@ def validate_data(router_id, input_ports, output_ports, timers):
         input_port_error = 1
 
     if input_port_error == 1:
-        print("Input Ports Configuration Error")
+        logger("Input Ports Configuration Error")
         return False
 
     #
@@ -118,7 +120,7 @@ def validate_data(router_id, input_ports, output_ports, timers):
     # temp_metric_set = set()
 
     if output_ports is None:
-        print("Output Ports Configuration Error: No output ports were given")
+        logger("Output Ports Configuration Error: No output ports were given")
         return False
     else:
         # an_item is (output port,metric,id)
@@ -126,7 +128,7 @@ def validate_data(router_id, input_ports, output_ports, timers):
 
             # check port range
             if (an_item[0] < MIN_PORT) or (an_item[0] > MAX_PORT):
-                print("Output Ports Configuration Error: Port out of range")
+                logger("Output Ports Configuration Error: Port out of range")
                 return False
                 break
             temp_output_port_set.add(an_item[0])
@@ -153,7 +155,7 @@ def validate_data(router_id, input_ports, output_ports, timers):
         output_port_error = 1
 
     if metric_error == 1:
-        print("Output Ports Configuration Error: Cost / Metric")
+        logger("Output Ports Configuration Error: Cost / Metric")
         return False
 
     # we might need this i.e. check if a cost / metric is missing?
@@ -162,11 +164,11 @@ def validate_data(router_id, input_ports, output_ports, timers):
 
     # do we need a check for missing ID?
     if id_error == 1:
-        print("Output Ports Configuration Error: ID")
+        logger("Output Ports Configuration Error: ID")
         return False
 
     if output_port_error == 1:
-        print("Output Ports Configuration Error: Port number re-use")
+        logger("Output Ports Configuration Error: Port number re-use")
         return False
 
     #
@@ -180,7 +182,7 @@ def validate_data(router_id, input_ports, output_ports, timers):
             timers_error = 1
 
     if timers_error == 1:
-        print("Timers Configuration Error")
+        logger("Timers Configuration Error")
         return False
 
     # All good, yay! return a zero

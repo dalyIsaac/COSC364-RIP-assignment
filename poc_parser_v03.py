@@ -36,6 +36,8 @@
 # Made pyright happy by changing variable names, thus fixing typing inference
 ################################################################################
 
+from routerbase import logger
+
 
 def read_config(filename):
     f = open(filename)
@@ -49,7 +51,7 @@ def read_config(filename):
         values = " ".join(line.split(" ")[1:])
         if option == "router-id":
             if router_id is not None:
-                print("multiple router-id lines")
+                logger("multiple router-id lines")
                 break
 
             router_id = int(values.strip())
@@ -57,7 +59,7 @@ def read_config(filename):
         elif option == "input-ports":
             # check if we have already set input-ports
             if input_ports is not None:
-                print("multiple input-ports lines")
+                logger("multiple input-ports lines")
                 break
 
             input_ports = []
@@ -68,7 +70,7 @@ def read_config(filename):
 
         elif option == "output-ports":
             if output_ports is not None:
-                print("multiple output-ports lines")
+                logger("multiple output-ports lines")
                 break
 
             output_ports = []
@@ -82,7 +84,7 @@ def read_config(filename):
                 output_ports.append((port_str, cost, curr_id))
         elif option == "timers":
             if timers is not None:
-                print("multiple timers lines")
+                logger("multiple timers lines")
                 break
 
             timers = []
@@ -98,9 +100,9 @@ if __name__ == "__main__":
 
     try:
         (router_id, input_ports, output_ports, timers) = read_config("R2.cfg")
-        print("router-id", router_id)
-        print("input-ports", input_ports)
-        print("output-ports", output_ports)
-        print("timers", timers)
+        logger("router-id", router_id)
+        logger("input-ports", input_ports)
+        logger("output-ports", output_ports)
+        logger("timers", timers)
     except (Exception):
-        print("An error occurred")
+        logger("An error occurred")

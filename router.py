@@ -3,9 +3,10 @@ from datetime import datetime
 from socket import socket
 from typing import List, Tuple
 
-from packet import construct_packets
+import routerbase
 from input_processing import input_processing
 from output_processing import deletion_process, send_response, send_responses
+from packet import construct_packets
 from poc_parser_v03 import read_config
 from port_closer import port_closer
 from port_opener import port_opener
@@ -31,7 +32,7 @@ def create_table(
     output_ports: List[Tuple[int, int, int]],
     timers: List[int],
 ):
-    update_time, timeout_time, gc_time = timers
+    update_time, timeout_time, gc_time, *extra = timers
     table = RoutingTable(router_id, update_time, timeout_time, gc_time)
 
     for port, cost, neighbour_router_id in output_ports:
@@ -41,7 +42,7 @@ def create_table(
 
 
 def startup(table: RoutingTable, output_sock: socket):
-    print("Starting up...")
+    routerbase.logger("Starting up...")
     for router_id in table.config_table:
         packets = construct_packets(table, router_id)
         for packet in packets:
@@ -49,10 +50,22 @@ def startup(table: RoutingTable, output_sock: socket):
             send_response(output_sock, port, packet)
 
 
+def get_params():
+    if len(sys.argv) < 2:
+        raise IndexError
+    filename = sys.argv[1]
+    is_debug = False
+    if len(sys.argv) >= 3 and sys.argv[2].lower() == "debug":
+        is_debug = True
+    return filename, is_debug
+
+
 def main():
     sockets: List[socket] = []
     try:
-        filename = sys.argv[1]
+        filename, is_debug = get_params()
+        routerbase.DEBUG_MODE = is_debug
+
         (router_id, input_ports, output_ports, timers) = read_config(filename)
         if not validate_data(router_id, input_ports, output_ports, timers):
             return
@@ -65,7 +78,7 @@ def main():
             sockets = result
 
         if len(sockets) == 0:
-            print("No sockets were opened.")
+            routerbase.logger("No sockets were opened.")
             return
 
         # first open socket is chosen to be the output socket
@@ -76,17 +89,17 @@ def main():
         daemon(table, sockets, output_sock)
 
     except IndexError:
-        print("Please give a filename.")
+        routerbase.logger("Please give a filename. Correct")
     except FileNotFoundError:
-        print("Please give a valid filename")
+        routerbase.logger("Please give a valid filename")
     except KeyboardInterrupt:
-        print("\nKeyboard interrupt detected.")
+        routerbase.logger("\nKeyboard interrupt detected.")
     except OSError:
-        print("")
+        routerbase.logger("")
     finally:
-        print("Router shutting down.")
+        routerbase.logger("Router shutting down.")
         port_closer(sockets)
-        print("Bye!")
+        routerbase.logger("Bye!")
     # sys.exit()
 
 
