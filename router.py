@@ -100,6 +100,8 @@ def main():
         routerbase.logger("Please give a valid filename")
     except KeyboardInterrupt:
         routerbase.logger("\nKeyboard interrupt detected.")
+    except ValueError:
+        routerbase.logger("Invalid configuration file.")
     except Exception:
         routerbase.logger("Something bad happened.")
     finally:
