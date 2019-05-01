@@ -48,8 +48,6 @@
 #   Moved doctests to their own unit test module
 #########################################################
 
-# import sys
-# import os
 
 from routerbase import logger
 
@@ -81,7 +79,6 @@ def validate_data(router_id, input_ports, output_ports, timers):
     # temp_id_list = None
     # temp_metric_list = None
 
-    #
     # Check Router ID
     if router_id is None:
         id_error = 1
@@ -113,7 +110,6 @@ def validate_data(router_id, input_ports, output_ports, timers):
         logger("Input Ports Configuration Error")
         return False
 
-    #
     # Check output ports
     temp_output_port_set = set()
     temp_id_set = set()
@@ -123,9 +119,7 @@ def validate_data(router_id, input_ports, output_ports, timers):
         logger("Output Ports Configuration Error: No output ports were given")
         return False
     else:
-        # an_item is (output port,metric,id)
         for an_item in output_ports:
-
             # check port range
             if (an_item[0] < MIN_PORT) or (an_item[0] > MAX_PORT):
                 logger("Output Ports Configuration Error: Port out of range")
@@ -171,7 +165,6 @@ def validate_data(router_id, input_ports, output_ports, timers):
         logger("Output Ports Configuration Error: Port number re-use")
         return False
 
-    #
     # Check Timers
     if len(timers) != 3:
         timers_error = 1
