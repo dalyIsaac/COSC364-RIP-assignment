@@ -32,6 +32,10 @@ def create_table(
     output_ports: List[Tuple[int, int, int]],
     timers: List[int],
 ):
+    """
+    Creates the routing table, and saves the information from the config file,
+    so that it can be easily be accessed later from a single place.
+    """
     update_time, timeout_time, gc_time, *extra = timers
     table = RoutingTable(router_id, update_time, timeout_time, gc_time)
 
@@ -42,6 +46,7 @@ def create_table(
 
 
 def startup(table: RoutingTable, output_sock: socket):
+    """Upon startup, it immediately sends out packets to neighbours."""
     routerbase.logger("Starting up...")
     for router_id in table.config_table:
         packets = construct_packets(table, router_id)
@@ -51,6 +56,7 @@ def startup(table: RoutingTable, output_sock: socket):
 
 
 def get_params():
+    """Gets the filename and logging level from the command line arguments."""
     if len(sys.argv) < 2:
         raise IndexError
     filename = sys.argv[1]
@@ -94,13 +100,12 @@ def main():
         routerbase.logger("Please give a valid filename")
     except KeyboardInterrupt:
         routerbase.logger("\nKeyboard interrupt detected.")
-    except OSError:
-        routerbase.logger("")
+    except Exception:
+        routerbase.logger("Something bad happened.")
     finally:
         routerbase.logger("Router shutting down.")
         port_closer(sockets)
         routerbase.logger("Bye!")
-    # sys.exit()
 
 
 if __name__ == "__main__":
