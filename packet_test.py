@@ -1,8 +1,8 @@
-import sys
-from io import StringIO
 from socket import AF_INET
 from unittest import TestCase, main
+from unittest.mock import Mock, patch
 
+import routerbase
 from packet import (
     ResponsePacket,
     construct_packets,
@@ -50,6 +50,9 @@ def get_two_packets():
 
 
 class TestPacketConstruction(TestCase):
+    def setUp(self):
+        routerbase.DEBUG_MODE = True
+
     def _test_single_packet(self, packet, expected_packet, iteration=0):
         for i, val in enumerate(expected_packet):
             self.assertEqual(
@@ -189,6 +192,9 @@ class TestPacketConstruction(TestCase):
 
 
 class TestPacketReading(TestCase):
+    def setUp(self):
+        routerbase.DEBUG_MODE = True
+
     def test_single_entry(self):
         """Tests that a packet with a single entry can be read correctly."""
         packet = get_single_packet()
@@ -225,69 +231,61 @@ class TestPacketReading(TestCase):
 
 class TestValidatePacket(TestCase):
     table: RoutingTable
-    captured_output = StringIO()
 
     def setUp(self):
-        self.captured_output = StringIO()
-        sys.stdout = self.captured_output
-
         self.table = RoutingTable(
             router_id=1, update_delta=10, timeout_delta=60, gc_delta=40
         )
         self.table.add_route(
             router_id=2,
-            route=RouteEntry(
-                port=4000, metric=2, timeout_time=60, next_hop=3
-            ),
+            route=RouteEntry(port=4000, metric=2, timeout_time=60, next_hop=3),
         )
 
-    def assertOutputEqual(self, expected: str, endline="\n"):
-        sys.stdout = sys.__stdout__
-        self.assertEqual(expected + endline, self.captured_output.getvalue())
+    def assertOutputEqual(self, expected: str, logger: Mock):
+        actual = ""
+        for item in logger.call_args:
+            if isinstance(item, tuple):
+                for i in item:
+                    actual += i
+        self.assertEqual(expected, actual)
 
-    def test_valid_packet(self):
+    @patch("packet.logger")
+    def test_valid_packet(self, logger):
         packet = ResponsePacket(
             command=2, version=2, sender_router_id=2, entries=[]
         )
         self.assertEqual(validate_packet(self.table, packet), True)
 
-    def test_invalid_neighbour(self):
-        packet = ResponsePacket(
-            command=2, version=2, sender_router_id=3, entries=[]
-        )
-        self.assertEqual(validate_packet(self.table, packet), False)
-        self.assertOutputEqual(
-            "Packet received from router_id 3, which is not "
-            "a neighbour of this router.\n"
-            "Current neighbours of this router 1 are [2]."
-        )
-
-    def test_sender_is_self(self):
+    @patch("packet.logger")
+    def test_sender_is_self(self, logger):
         packet = ResponsePacket(
             command=2, version=2, sender_router_id=1, entries=[]
         )
         self.assertEqual(validate_packet(self.table, packet), False)
         self.assertOutputEqual(
             "The packet's router_id of 1 illegally matches the router_id of "
-            "this router."
+            "this router.",
+            logger,
         )
 
-    def test_invalid_command(self):
+    @patch("packet.logger")
+    def test_invalid_command(self, logger):
         packet = ResponsePacket(
             command=1, version=2, sender_router_id=2, entries=[]
         )
         self.assertEqual(validate_packet(self.table, packet), False)
         self.assertOutputEqual(
-            "The packet has a command value of 1, instead of 2."
+            "The packet has a command value of 1, instead of 2.", logger
         )
 
-    def test_invalid_version(self):
+    @patch("packet.logger")
+    def test_invalid_version(self, logger):
         packet = ResponsePacket(
             command=2, version=1, sender_router_id=2, entries=[]
         )
         self.assertEqual(validate_packet(self.table, packet), False)
         self.assertOutputEqual(
-            "The packet has a version value of 1, instead of 2."
+            "The packet has a version value of 1, instead of 2.", logger
         )
 
 

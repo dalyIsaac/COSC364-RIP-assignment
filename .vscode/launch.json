@@ -10,7 +10,7 @@
       "request": "launch",
       "program": "${workspaceRoot}/router.py",
       "console": "integratedTerminal",
-      "args": ["R13.cfg"]
+      "args": ["./Config_files/R2a.cfg"]
     },
     {
       "name": "Python: Run router in external terminal",
@@ -18,7 +18,7 @@
       "request": "launch",
       "program": "${workspaceRoot}/router.py",
       "console": "externalTerminal",
-      "args": ["R13.cfg"]
+      "args": ["./Config_files/R2a.cfg"]
     },
     {
       "name": "Python: Current File (Integrated Terminal)",
