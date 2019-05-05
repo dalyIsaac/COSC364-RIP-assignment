@@ -1,8 +1,9 @@
 from datetime import datetime, timedelta
 from random import randint
 from time import sleep
-from typing import Dict, Iterator, Optional, NamedTuple
+from typing import Dict, Iterator, NamedTuple, Optional
 
+import routerbase
 from routeentry import RouteEntry
 
 
@@ -89,9 +90,12 @@ class RoutingTable:
         self.remove_route(router_id)
 
     def _str_headers(self, router_id: int) -> str:
-        output = (
-            "| self_id | router_id | port | next_hop | metric | flag  "
-            + " | "
+        output = "| self_id | router_id | port | next_hop | metric"
+        if routerbase.DEBUG_MODE:
+            output += " | flag"
+
+        output += (
+            " | "
             + "timeout_time".ljust(26)
             + " | "
             + "gc_time".ljust(26)
@@ -120,9 +124,10 @@ class RoutingTable:
             + " | "
             + str(e.metric).ljust(6)
             + " | "
-            + str(e.flag).ljust(6)
-            + " | "
         )
+
+        if routerbase.DEBUG_MODE:
+            output += str(e.flag).ljust(5) + "| "
 
         try:
             output += str(e.timeout_time).ljust(26)
