@@ -47,6 +47,7 @@ def send_responses(table: RoutingTable, sock: socket, clear_flags=False):
 
 def timeout_processing(table: RoutingTable, entry: RouteEntry, sock: socket):
     """Starts processing for the timeout timer."""
+    logger("About to set gc time", is_debug=True)
     entry.set_garbage_collection_time(table.gc_delta)
     entry.metric = INFINITY
     entry.flag = True
@@ -64,10 +65,12 @@ def gc_processing(
     table: RoutingTable, router_id: int, entry: RouteEntry, now: datetime
 ):
     """Starts processing for the garbage collection timer."""
-    ids_to_delete = []
-
-    if router_id in table and entry.gc_time and entry.gc_time >= now:
-        ids_to_delete.append(router_id)
+    if (
+        router_id in table
+        and entry.gc_time is not None
+        and entry.gc_time <= now
+    ):
+        logger(f"Deleting router id {router_id}", is_debug=True)
         del table[router_id]
 
 
@@ -79,10 +82,20 @@ def deletion_process(
     routing table.
     """
     logger("In deletion process", is_debug=True)
+    logger(f"New infinite id is {new_infinite_id}", is_debug=True)
     now = datetime.now()  # Only calling it once minimises system time
     for router_id in table:
+        logger(f"Current router id is {router_id}", is_debug=True)
         entry: RouteEntry = table[router_id]
         if entry.gc_time is not None:
+            logger(
+                f"About to go into GC processing for router {router_id}",
+                is_debug=True,
+            )
             gc_processing(table, router_id, entry, now)
         elif entry.timeout_time <= now or router_id == new_infinite_id:
+            logger(
+                f"About to go into timeout processing for router {router_id}",
+                is_debug=True,
+            )
             pool.submit(timeout_processing, table, entry, sock)

@@ -62,7 +62,7 @@ def add_route(
         # no point adding routes that you cannot reach.
         return
 
-    logger(f"Adding route {new_metric}", is_debug=True)
+    logger(f"Adding route with cost of {new_metric}", is_debug=True)
 
     actual_port = table.config_table[next_hop].port
     entry = RouteEntry(actual_port, new_metric, table.timeout_delta, next_hop)
@@ -90,7 +90,10 @@ def adopt_route(
     Adopts the newly received route, and updates the existing routing table
     entry.
     """
-    logger(f"Adopting route {new_metric}", is_debug=True)
+    logger(
+        f"Adopting route with metric of {new_metric}, router_id {router_id}",
+        is_debug=True,
+    )
 
     table_entry.metric = new_metric
     table_entry.next_hop = next_hop
@@ -124,6 +127,10 @@ def update_table(
     Goes through the process of updating the routing table with the new route,
     if applicable.
     """
+    logger(
+        f"Updating the table with router_id {packet_entry.router_id}",
+        is_debug=True,
+    )
     table_entry: RouteEntry = table[packet_entry.router_id]
 
     if next_hop == table_entry.next_hop and new_metric != INFINITY:
@@ -174,6 +181,7 @@ def process_entry(
     sock: socket,
 ):
     """Processes a single entry from a received packet."""
+    logger("Processing an entry", is_debug=True)
     if not validate_entry(table, packet_entry):
         # Ignores invalid entries
         return

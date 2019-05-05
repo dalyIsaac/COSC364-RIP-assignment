@@ -102,8 +102,9 @@ def main():
         routerbase.logger("\nKeyboard interrupt detected.")
     except ValueError:
         routerbase.logger("Invalid configuration file.")
-    except Exception:
+    except Exception as ex:
         routerbase.logger("Something bad happened.")
+        routerbase.logger(ex, is_debug=True)
     finally:
         routerbase.logger("Router shutting down.")
         port_closer(sockets)
