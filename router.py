@@ -19,11 +19,10 @@ def daemon(table: RoutingTable, sockets: List[socket], output_sock: socket):
     while True:
         while table.sched_update_time > datetime.now():
             input_processing(table, sockets)
+            deletion_process(table, output_sock)
 
         send_responses(table, output_sock)
         table.update_sched_update_time()
-
-        deletion_process(table, output_sock)
 
 
 def create_table(

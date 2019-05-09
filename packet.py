@@ -1,5 +1,5 @@
 from socket import AF_INET
-from typing import List, NamedTuple
+from typing import List, NamedTuple, Union
 
 from routeentry import RouteEntry
 from routerbase import logger
@@ -97,7 +97,7 @@ def construct_packets(table: RoutingTable, router_id: int) -> List[bytearray]:
     return packets
 
 
-def _read_packet_entry(packet: bytearray, start_index: int) -> ResponseEntry:
+def _read_packet_entry(packet: Union[bytearray, bytes], start_index: int) -> ResponseEntry:
     """
     Returns the properties of a single RIP entry inside a RIP response packet.
     """
@@ -111,7 +111,7 @@ def _read_packet_entry(packet: bytearray, start_index: int) -> ResponseEntry:
     return ResponseEntry(afi, router_id, metric)
 
 
-def read_packet(packet: bytearray) -> ResponsePacket:
+def read_packet(packet: Union[bytearray, bytes]) -> ResponsePacket:
     """Returns the properties of the received RIP response packet."""
     command: int = packet[0]
     version: int = packet[1]

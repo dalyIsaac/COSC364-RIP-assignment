@@ -152,7 +152,7 @@ class RoutingTable:
         for router_id in self.table:
             output += self._str_entry(router_id)
 
-        if output:
+        if output and router_id is not None:
             output = self._str_headers(router_id) + output
         else:
             output = "Empty table"
