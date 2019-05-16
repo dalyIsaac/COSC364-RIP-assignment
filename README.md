@@ -10,5 +10,5 @@ The report submitted for the assignment is [COSC364 RIP Assignment Report.pdf](C
 
 Authors:
 
-- @dalyIsaac
-- @hamblynmf
+- [@dalyIsaac](https://github.com/dalyIsaac)
+- [@hamblynmf](https://github.com/hamblynmf)
